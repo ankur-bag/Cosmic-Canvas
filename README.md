@@ -60,15 +60,18 @@ We're democratizing design by making it accessible, editable, and intuitive for 
 6.  **API Rate-Limiting and Free Tier Constraints**:
 During the development of Cosmic Canvas, one of the significant challenges we encountered was the reliance on free-tier API keys for AI model integration. While these free APIs allowed us to test and iterate on our features without incurring costs, they came with limitations that impacted user experience and scalability:
 
-**Rate-Limiting**: The APIs we used were subject to strict rate-limiting, meaning only a limited number of requests could be processed within a given time frame. This caused delays or temporary unavailability of features, especially during peak usage or stress testing.
+      **Rate-Limiting**: The APIs we used were subject to strict rate-limiting, meaning only a limited number of requests could be processed within a given time frame. This caused delays or temporary 
+      unavailability of features, especially during peak usage or stress testing.
 
-**Response Times**: Due to the shared nature of free-tier APIs, the response times were inconsistent. At times, generating high-quality AI outputs took longer than expected, causing frustration for both developers and users.
+      **Response Times**: Due to the shared nature of free-tier APIs, the response times were inconsistent. At times, generating high-quality AI outputs took longer than expected, causing frustration for both 
+      developers and users.
 
-**Resource Constraints**: Free-tier APIs often had reduced computational resources, leading to a compromise in the quality or resolution of generated outputs, particularly for resource-intensive tasks like image generation or dynamic element processing.
+      **Resource Constraints**: Free-tier APIs often had reduced computational resources, leading to a compromise in the quality or resolution of generated outputs, particularly for resource-intensive tasks 
+      like image generation or dynamic element processing.
 
-**Debugging Complexity**: Differentiating between API-level issues (e.g., rate limits, downtime) and local application bugs was challenging, leading to extended debugging cycles.
+      **Debugging Complexity**: Differentiating between API-level issues (e.g., rate limits, downtime) and local application bugs was challenging, leading to extended debugging cycles.
 
-Each of these challenges pushed our understanding of UI/UX engineering and led to a more refined, scalable, and user-friendly product.
+      Each of these challenges pushed our understanding of UI/UX engineering and led to a more refined, scalable, and user-friendly product.
 
 -----
 
