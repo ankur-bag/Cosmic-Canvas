@@ -57,6 +57,16 @@ We're democratizing design by making it accessible, editable, and intuitive for 
 3.  **Cropped Logo Stretching Issues:** Our `cropped_logo.png` appeared stretched on various pages due to aspect ratio mismatches. We implemented consistent CSS styling (`object-fit: contain`) and custom height/width rules to ensure correct visual representation across all landing, login, and signup pages.
 4.  **Loader Display Logic:** The animated logo loader was appearing during in-page scrolls (e.g., in the Features or About sections), which disrupted the user experience. We refined the logic to display the loader only during full-page navigations (e.g., Login to Canvas), significantly improving perceived performance and user flow.
 5.  **Performance vs. Aesthetics:** Balancing visually rich live effects (glowing particles, gradient animations) with fast load times was a delicate act. We optimized CSS animations and incorporated lightweight particle systems with conditional loading on mobile devices, ensuring a delightful yet performant experience.
+6.  **API Rate-Limiting and Free Tier Constraints**:
+During the development of Cosmic Canvas, one of the significant challenges we encountered was the reliance on free-tier API keys for AI model integration. While these free APIs allowed us to test and iterate on our features without incurring costs, they came with limitations that impacted user experience and scalability:
+
+**Rate-Limiting**: The APIs we used were subject to strict rate-limiting, meaning only a limited number of requests could be processed within a given time frame. This caused delays or temporary unavailability of features, especially during peak usage or stress testing.
+
+**Response Times**: Due to the shared nature of free-tier APIs, the response times were inconsistent. At times, generating high-quality AI outputs took longer than expected, causing frustration for both developers and users.
+
+**Resource Constraints**: Free-tier APIs often had reduced computational resources, leading to a compromise in the quality or resolution of generated outputs, particularly for resource-intensive tasks like image generation or dynamic element processing.
+
+**Debugging Complexity**: Differentiating between API-level issues (e.g., rate limits, downtime) and local application bugs was challenging, leading to extended debugging cycles.
 
 Each of these challenges pushed our understanding of UI/UX engineering and led to a more refined, scalable, and user-friendly product.
 
