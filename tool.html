@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cosmic Canvas - Design Tool</title>
+    <!-- Load dependencies first -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+    <!-- Load utility scripts -->
+    <script src="firebase-config.js" type="module"></script>
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Then load styles -->
+    <link rel="stylesheet" href="tool.css">
+    <link rel="stylesheet" href="toolbar.css">
+    <style>
+        .error-display {
+            display: none;
+            color: #ff4444;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            background-color: #ffe6e6;
+            border: 1px solid #ff4444;
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .loading-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 1000;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .success { color: #4BB543; background-color: #e6ffe6; border-color: #4BB543; }
+        .warning { color: #ff9933; background-color: #fff3e6; border-color: #ff9933; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header with logo and size controls -->
+        <header class="app-header">
+            <div class="logo">
+                <img src="logo.png" alt="Cosmic Canvas" height="40">
+                <span>Cosmic Canvas</span>
+            </div>
+            <div class="header-controls">
+                <select id="canvasSizeDropdown" class="size-dropdown">
+                    <option value="instagram-post">Instagram Post (1080×1350)</option>
+                    <option value="instagram-story">Instagram Story (1080×1920)</option>
+                    <option value="linkedin-post">LinkedIn Post (1200×627)</option>
+                    <option value="youtube-thumbnail">YouTube Thumbnail (1280×720)</option>
+                    <option value="custom">Custom Size</option>
+                </select>
+                <div id="customSizeInputs" class="custom-size-inputs">
+                    <input type="number" id="customWidth" placeholder="Width" min="100" max="5000">
+                    <input type="number" id="customHeight" placeholder="Height" min="100" max="5000">
+                </div>
+                <div id="canvasDimensions">Current: 1080 x 1350</div>
+                <button class="export-btn">Export</button>
+            </div>
+            <div id="errorDisplay" class="error-display"></div>
+            <div id="loadingIndicator" class="loading-indicator" style="display: none;">
+                <div class="spinner"></div>
+                <span id="loadingMessage">Generating...</span>
+            </div>
+        </header>
+
+        <!-- Toolbar (full width, above main-content) -->
+        <div class="toolbar-top">
+            <div class="tool-group">
+                <button class="tool-btn" title="Select" id="selectTool"><i class="material-icons">select_all</i></button>
+                <button class="tool-btn" title="Rectangle" id="rectangleTool"><i class="material-icons">crop_square</i></button>
+                <button class="tool-btn" title="Circle" id="circleTool"><i class="material-icons">radio_button_unchecked</i></button>
+                <button class="tool-btn" title="Text" id="textTool"><i class="material-icons">text_fields</i></button>
+            </div>
+            <div class="tool-group">
+                <div class="color-control">
+                    <input type="color" id="objectColorPicker" title="Object Color" value="#000000">
+                    <span class="color-label">Fill</span>
+                </div>
+                <div class="color-control">
+                    <input type="color" id="strokeColorPicker" title="Stroke Color" value="#000000">
+                    <span class="color-label">Stroke</span>
+                </div>
+                <div class="stroke-width-control">
+                    <input type="number" id="strokeWidthInput" title="Stroke Width" min="0" max="20" value="0">
+                    <span class="color-label">px</span>
+                </div>
+            </div>
+            <div class="tool-group">
+                <select id="fontSelect" class="font-select" title="Font Family">
+                    <option value="Arial">Arial</option>
+                    <option value="Times New Roman">Times New Roman</option>
+                    <option value="Comic Sans MS">Comic Sans MS</option>
+                    <option value="Courier New">Courier New</option>
+                    <option value="Georgia">Georgia</option>
+                    <option value="Impact">Impact</option>
+                    <option value="Lucida Console">Lucida Console</option>
+                    <option value="Tahoma">Tahoma</option>
+                    <option value="Trebuchet MS">Trebuchet MS</option>
+                    <option value="Verdana">Verdana</option>
+                </select>
+                <div class="color-control">
+                    <input type="color" id="textColorPicker" title="Text Color" value="#000000">
+                    <span class="color-label">Text</span>
+                </div>
+                <button class="tool-btn" title="Bold" id="boldBtn" data-format="bold"><i class="material-icons">format_bold</i></button>
+                <button class="tool-btn" title="Italic" id="italicBtn" data-format="italic"><i class="material-icons">format_italic</i></button>
+                <button class="tool-btn" title="Underline" id="underlineBtn" data-format="underline"><i class="material-icons">format_underlined</i></button>
+            </div>
+            <div class="tool-group">
+                <button class="tool-btn" title="Move Up (Ctrl + })" id="moveUpBtn"><i class="material-icons">keyboard_arrow_up</i></button>
+                <button class="tool-btn" title="Move Down (Ctrl + {)" id="moveDownBtn"><i class="material-icons">keyboard_arrow_down</i></button>
+                <button class="tool-btn" title="Duplicate" id="duplicateBtn"><i class="material-icons">content_copy</i></button>
+                <button class="tool-btn" title="Delete" id="deleteBtn"><i class="material-icons">delete</i></button>
+            </div>
+            <div class="tool-group">
+                <div class="color-control">
+                    <input type="color" id="bgColorPicker" title="Background Color" value="#FFFFFF">
+                    <span class="color-label">Background</span>
+                </div>
+                <div class="opacity-control">
+                    <input type="range" id="opacitySlider" min="0" max="100" value="100" title="Opacity">
+                    <span id="opacityValue">100%</span>
+                </div>
+            </div>
+            <div class="tool-group">
+                <button class="tool-btn" title="Undo" id="undoBtn"><i class="material-icons">undo</i></button>
+                <button class="tool-btn" title="Redo" id="redoBtn"><i class="material-icons">redo</i></button>
+                <button class="tool-btn" title="Clear Canvas" id="clearCanvasBtn"><i class="material-icons">delete_sweep</i></button>
+            </div>
+        </div>
+        
+        <!-- Main content: three columns -->
+        <div class="main-content">
+            <!-- Left Sidebar -->
+            <div class="left-sidebar">
+                <div class="ai-section">
+                    <h3>AI Image Generation</h3>
+                    <textarea class="image-prompt-input" id="imagePrompt" placeholder="Describe the image you want to generate..."></textarea>
+                    <div class="button-group">
+                        <button class="generate-btn" id="generateImageBtn">Generate Image</button>
+                        <button class="enhance-btn" id="enhancePromptBtn">Enhance Prompt</button>
+                    </div>
+                </div>
+                <div class="ai-section">
+                    <h3>Design Purpose</h3>
+                    <div class="purpose-options">
+                        <button class="purpose-btn" data-purpose="social">Social</button>
+                        <button class="purpose-btn" data-purpose="marketing">Marketing</button>
+                        <button class="purpose-btn" data-purpose="personal">Personal</button>
+                        <button class="purpose-btn" data-purpose="business">Business</button>
+                    </div>
+                </div>
+            </div>
+            <!-- Canvas Center -->
+            <div class="canvas-wrapper">
+                <div class="canvas-container">
+                    <canvas id="canvas"></canvas>
+                </div>
+            </div>
+            <!-- Right Sidebar -->
+            <div class="right-sidebar">
+                <div class="ai-section">
+                    <h3>AI Design Assistant</h3>
+                    <textarea id="designDescription" class="design-description" placeholder="Describe your design..."></textarea>
+                    <button id="generateDesignBtn" class="generate-btn">Generate Layout</button>
+                    <div class="caption-suggestions" style="margin-top: 24px;">
+                        <h4>AI CAPTION SUGGESTIONS
+                        <div id="captionsList" class="captions-list"></div>
+                        <button id="regenerateCaptionsBtn" class="regenerate-btn">Suggest Captions</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <input type="file" id="uploadImage" accept="image/*" style="display: none;">
+    
+    <!-- Load our JavaScript last -->
+    <script src="tool.js"></script>
+</body>
+</html>

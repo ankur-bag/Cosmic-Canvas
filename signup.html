@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sign Up - Cosmic Canvas</title>
+  <!-- Add Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics-compat.js"></script>
+  <!-- Add Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap');
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      background: #0a0a0a;
+      min-height: 100vh;
+      overflow-x: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: 
+        linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+      background-size: 30px 30px;
+      animation: gridMove 20s linear infinite;
+    }
+
+    @keyframes gridMove {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(30px); }
+    }
+
+    body::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: 
+        radial-gradient(circle at 20% 20%, rgba(58, 91, 255, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(255, 110, 199, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 50% 50%, rgba(162, 89, 230, 0.05) 0%, transparent 50%);
+      animation: bgPulse 8s ease-in-out infinite alternate;
+    }
+
+    .stars {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .star {
+      position: absolute;
+      background: white;
+      border-radius: 50%;
+      animation: twinkle 4s infinite;
+    }
+
+    @keyframes twinkle {
+      0%, 100% { opacity: 0.2; }
+      50% { opacity: 1; }
+    }
+
+    .container {
+      position: relative;
+      width: 100%;
+      max-width: 1200px;
+      height: 600px;
+      background: rgba(10, 10, 10, 0.8);
+      border-radius: 20px;
+      box-shadow: 0 8px 32px 0 rgba(58,91,255,0.12), 0 1.5px 8px 0 rgba(255,110,199,0.08);
+      backdrop-filter: blur(12px);
+      border: 1.5px solid rgba(162,89,230,0.18);
+      overflow: hidden;
+      animation: containerGlow 3s ease-in-out infinite alternate;
+      z-index: 1;
+    }
+
+    @keyframes containerGlow {
+      0% { box-shadow: 0 8px 32px 0 rgba(58,91,255,0.12), 0 1.5px 8px 0 rgba(255,110,199,0.08); }
+      100% { box-shadow: 0 8px 32px 0 rgba(58,91,255,0.2), 0 1.5px 8px 0 rgba(255,110,199,0.15); }
+    }
+
+    .form-content {
+      display: grid;
+      grid-template-columns: 1fr 1.5fr 1fr;
+      height: 100%;
+    }
+
+    .left-side {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 3rem 2rem;
+      color: white;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .left-side::before {
+      content: '';
+      position: absolute;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(58,91,255,0.1) 0%, transparent 70%);
+      animation: rotate 20s linear infinite;
+      z-index: 0;
+    }
+
+    .right-side {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 3rem 2rem;
+      color: white;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .right-side::before {
+      content: '';
+      position: absolute;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255,110,199,0.1) 0%, transparent 70%);
+      animation: rotate 20s linear infinite reverse;
+      z-index: 0;
+    }
+
+    @keyframes rotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .left-side h2, .right-side h2 {
+      font-size: 1.8rem;
+      margin-bottom: 1rem;
+      background: linear-gradient(90deg, #3A5BFF, #A259E6, #FF6EC7);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      font-weight: 800;
+      position: relative;
+      z-index: 1;
+      text-shadow: 0 0 10px rgba(162,89,230,0.3);
+    }
+
+    .left-side p, .right-side p {
+      font-size: 0.9rem;
+      margin-bottom: 2rem;
+      color: rgba(255, 255, 255, 0.8);
+      position: relative;
+      z-index: 1;
+      text-shadow: 0 0 5px rgba(162,89,230,0.2);
+    }
+
+    .center-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      position: relative;
+    }
+
+    .title {
+      font-size: 2.5rem;
+      background: linear-gradient(90deg, #3A5BFF, #A259E6, #FF6EC7);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-align: center;
+      margin-bottom: 2rem;
+      font-weight: 800;
+      text-shadow: 0 0 15px rgba(162,89,230,0.5);
+      animation: titleGlow 2s ease-in-out infinite alternate;
+    }
+
+    @keyframes titleGlow {
+      from { text-shadow: 0 0 15px rgba(162,89,230,0.5); }
+      to { text-shadow: 0 0 30px rgba(162,89,230,0.8); }
+    }
+
+    .input-field {
+      width: 100%;
+      background: rgba(36, 36, 54, 0.85);
+      margin: 10px 0;
+      height: 55px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      padding: 0 15px;
+      border: 1.5px solid rgba(162,89,230,0.18);
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+      animation: inputFieldGlow 3s ease-in-out infinite alternate;
+    }
+
+    @keyframes inputFieldGlow {
+      0% { box-shadow: 0 0 0 0 rgba(162,89,230,0); }
+      100% { box-shadow: 0 0 0 2px rgba(162,89,230,0.1); }
+    }
+
+    .input-field::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(162,89,230,0.1), transparent);
+      transition: 0.5s;
+    }
+
+    .input-field:hover::before {
+      left: 100%;
+    }
+
+    .input-field:hover {
+      background: rgba(58,91,255,0.10);
+      border-color: #A259E6;
+      box-shadow: 0 0 0 2px #A259E644;
+      transform: translateY(-2px);
+    }
+
+    .input-field i {
+      color: rgba(255, 255, 255, 0.7);
+      margin-right: 10px;
+      font-size: 1.1rem;
+      transition: all 0.3s;
+    }
+
+    .input-field:hover i {
+      color: #A259E6;
+      transform: scale(1.1);
+    }
+
+    .input-field input {
+      background: none;
+      outline: none;
+      border: none;
+      line-height: 1;
+      font-weight: 500;
+      font-size: 1.1rem;
+      color: #fff;
+      width: 100%;
+    }
+
+    .input-field input::placeholder {
+      color: rgba(255, 255, 255, 0.5);
+      text-shadow: 0 0 5px rgba(162,89,230,0.1);
+    }
+
+    .btn {
+      width: 100%;
+      height: 49px;
+      border: none;
+      outline: none;
+      border-radius: 10px;
+      cursor: pointer;
+      background: linear-gradient(90deg, #3A5BFF, #A259E6, #FF6EC7);
+      color: #fff;
+      text-transform: uppercase;
+      font-weight: 600;
+      margin: 10px 0;
+      transition: all 0.3s;
+      box-shadow: 0 2px 12px 0 rgba(58,91,255,0.10);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn-text {
+      position: relative;
+      z-index: 1;
+      letter-spacing: 1px;
+    }
+
+    .btn:hover {
+      transform: translateY(-3px) scale(1.03);
+      box-shadow: 0 6px 24px 0 rgba(162,89,230,0.18), 0 2px 12px 0 rgba(255,110,199,0.12);
+      background: linear-gradient(90deg, #FF6EC7, #A259E6, #3A5BFF);
+    }
+
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+      transform: translateX(-100%);
+      transition: transform 0.6s ease;
+    }
+
+    .btn:hover::before {
+      transform: translateX(100%);
+    }
+
+    .btn::after {
+      content: '';
+      position: absolute;
+      left: -50%;
+      top: 0;
+      width: 200%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .btn:hover::after {
+      opacity: 1;
+      animation: btn-glow 1.2s linear;
+    }
+
+    @keyframes btn-glow {
+      0% { left: -50%; opacity: 0.2; }
+      50% { left: 25%; opacity: 0.5; }
+      100% { left: 100%; opacity: 0; }
+    }
+
+    .social-text {
+      padding: 1rem 0;
+      font-size: 1rem;
+      color: rgba(255, 255, 255, 0.8);
+      text-align: center;
+      text-shadow: 0 0 5px rgba(162,89,230,0.2);
+    }
+
+    .social-media {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+    }
+
+    .social-icon {
+      height: 46px;
+      width: 46px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #fff;
+      border-radius: 50%;
+      border: 1.5px solid rgba(162,89,230,0.18);
+      text-decoration: none;
+      font-size: 1.1rem;
+      transition: all 0.3s;
+      background: rgba(36, 36, 54, 0.85);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .social-icon::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(162,89,230,0.2), transparent);
+      transition: 0.5s;
+    }
+
+    .social-icon:hover::before {
+      left: 100%;
+    }
+
+    .social-icon:hover {
+      color: #A259E6;
+      border-color: #A259E6;
+      background: rgba(162,89,230,0.1);
+      box-shadow: 0 0 10px rgba(162,89,230,0.5);
+      transform: translateY(-3px) rotate(360deg);
+    }
+
+    .error-message {
+      color: #ff4d4d;
+      font-size: 0.9rem;
+      margin-top: 10px;
+      text-align: center;
+      min-height: 20px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .error-message.show {
+      opacity: 1;
+    }
+
+    .floating-shapes {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .shape {
+      position: absolute;
+      background: rgba(162,89,230,0.1);
+      border: 1px solid rgba(162,89,230,0.2);
+      border-radius: 50%;
+      animation: float 15s infinite ease-in-out;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) rotate(0deg); }
+      25% { transform: translate(10px, -10px) rotate(90deg); }
+      50% { transform: translate(0, -20px) rotate(180deg); }
+      75% { transform: translate(-10px, -10px) rotate(270deg); }
+    }
+
+    @media (max-width: 870px) {
+      .container {
+        min-height: 800px;
+        height: 100vh;
+      }
+
+      .form-content {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 2fr auto;
+      }
+
+      .left-side, .right-side {
+        padding: 1.5rem;
+      }
+
+      .left-side h2, .right-side h2 {
+        font-size: 1.5rem;
+      }
+
+      .left-side p, .right-side p {
+        font-size: 0.8rem;
+      }
+
+      .title {
+        font-size: 2rem;
+      }
+    }
+
+    .toggle-password {
+      cursor: pointer;
+      color: rgba(255, 255, 255, 0.7);
+      transition: all 0.3s;
+      margin-left: 10px;
+    }
+
+    .toggle-password:hover {
+      color: #A259E6;
+      transform: scale(1.1);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="floating-shapes">
+      <div class="shape" style="width: 50px; height: 50px; top: 10%; left: 10%; animation-delay: 0s;"></div>
+      <div class="shape" style="width: 30px; height: 30px; top: 20%; right: 10%; animation-delay: 2s;"></div>
+      <div class="shape" style="width: 40px; height: 40px; bottom: 20%; left: 15%; animation-delay: 4s;"></div>
+      <div class="shape" style="width: 25px; height: 25px; bottom: 10%; right: 15%; animation-delay: 6s;"></div>
+    </div>
+    <div class="form-content">
+      <div class="left-side">
+        <h2>Already have an account?</h2>
+        <p>Sign in to access your dashboard and continue your journey.</p>
+        <a href="login.html" class="btn transparent">SIGN IN</a>
+      </div>
+
+      <div class="center-content">
+        <h1 class="title">Create Account</h1>
+        
+        <form action="#" class="sign-up-form" id="signupForm">
+          <div class="input-field">
+            <i class="fas fa-user"></i>
+            <input type="text" name="name" placeholder="Full Name" required autocomplete="name">
+          </div>
+          <div class="input-field">
+            <i class="fas fa-envelope"></i>
+            <input type="email" name="email" placeholder="Email" required autocomplete="email">
+          </div>
+          <div class="input-field">
+            <i class="fas fa-lock"></i>
+            <input type="password" name="password" id="password" placeholder="Password" required autocomplete="new-password">
+            <i class="fas fa-eye-slash toggle-password" id="togglePassword"></i>
+          </div>
+          <button type="submit" class="btn">
+            <span class="btn-text">SIGN UP</span>
+          </button>
+          <div class="error-message" id="signup-error"></div>
+        </form>
+
+        <p class="social-text">Or Sign up with</p>
+        <div class="social-media">
+          <a href="#" class="social-icon">
+            <i class="fab fa-google"></i>
+          </a>
+        </div>
+      </div>
+
+      <div class="right-side">
+        <h2>Join Us Today!</h2>
+        <p>Create an account to get started with our amazing services and unleash your creativity.</p>
+        <img src="logo.png" alt="Cosmic Canvas Logo" class="w-32 h-32 mb-4">
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Initialize Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyCfxC230uQw4WB_iALCYFMXniZfQwUkpfc",
+      authDomain: "cosmiccanvas-6b5a0.firebaseapp.com",
+      projectId: "cosmiccanvas-6b5a0",
+      storageBucket: "cosmiccanvas-6b5a0.firebasestorage.app",
+      messagingSenderId: "190984165965",
+      appId: "1:190984165965:web:bd6df8b9efcecdbba35a04",
+      measurementId: "G-3XMK86XT6M"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const analytics = firebase.analytics();
+    const googleProvider = new firebase.auth.GoogleAuthProvider();
+
+    // Set persistence to NONE - user will need to login each time
+    auth.setPersistence(firebase.auth.Auth.Persistence.NONE)
+      .catch((error) => {
+        console.error("Error setting persistence:", error);
+      });
+
+    // Development settings
+    auth.settings.appVerificationDisabledForTesting = true;
+    
+    // Configure Google provider
+    googleProvider.setCustomParameters({
+      prompt: 'select_account'
+    });
+
+    // Add authorized domains
+    auth.useDeviceLanguage();
+    auth.settings.appVerificationDisabledForTesting = true;
+
+    const signupForm = document.getElementById('signupForm');
+    const googleSignUpBtn = document.querySelector('.social-icon');
+    const errorMessage = document.getElementById('signup-error');
+
+    // Handle email/password signup
+    signupForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = signupForm.email.value;
+      const password = signupForm.password.value;
+
+      try {
+        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+        if (userCredential.user) {
+          window.location.href = 'tool.html';
+        }
+      } catch (error) {
+        showError(error.message);
+      }
+    });
+
+    // Handle Google sign up
+    googleSignUpBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      try {
+        const result = await auth.signInWithPopup(googleProvider);
+        if (result.user) {
+          window.location.href = 'tool.html';
+        }
+      } catch (error) {
+        showError(error.message);
+      }
+    });
+
+    // Show error message
+    function showError(message) {
+      errorMessage.textContent = message;
+      errorMessage.classList.add('show');
+      setTimeout(() => {
+        errorMessage.classList.remove('show');
+      }, 3000);
+    }
+
+    // Add password visibility toggle
+    const togglePassword = document.getElementById('togglePassword');
+  </script>
+</body>
+</html>
