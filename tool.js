@@ -169,7 +169,7 @@ const HF_URL = "https://api-inference.huggingface.co/models/stable-diffusion-xl-
 // Enhance Prompt using OpenRouter Gemini 2.0 Flash API
 const GEMINI_FLASH_MODEL = 'google/gemini-2.0-flash-exp:free';
 
-const API_BASE = 'https://cosmic-canvas.onrender.com/';
+const API_BASE = 'https://cosmic-canvas.onrender.com';
 
 // Add at the top of the file with other global variables
 const MAX_RETRIES = 3;
