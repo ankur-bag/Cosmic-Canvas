@@ -97,5 +97,5 @@ This project was a collaborative effort.
 
 *This project is licensed under the MIT License – see the LICENSE file for details.*
 // MIT License
-// Copyright (c) 2025 Samrit Mukherjee, Ankur Bag
+// Copyright (c) 2025 Ankur Bag , Samrit Mukherjee
 // See LICENSE file for full license information.
