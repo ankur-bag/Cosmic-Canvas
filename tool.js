@@ -63,6 +63,9 @@ let canvas;
 let currentWidth = 1080;
 let currentHeight = 1920;
 
+let imagePromptInput; // Added for global access
+let designDescriptionInput; // Added for global access
+
 // Tool States
 let activeTool = null;
 let isDrawing = false;
@@ -81,6 +84,7 @@ const COLOR_PRESETS = [
 // History Management
 let history = [];
 let historyIndex = -1;
+let isLoadingState = false; // Flag to prevent saving during state loading
 const MAX_HISTORY = 50;
 
 // Font Options
@@ -120,7 +124,7 @@ let lastCaptions = [];
 const OPENROUTER_API_KEY = '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';
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
 const LLAMA_MODEL_SLUG = 'meta-llama/llama-4-maverick:free';
-const OPENROUTER_REFERER = "http://127.0.0.1:5501"; // or your deployed site
+const OPENROUTER_REFERER = "http://cosmic-canvas-delta.vercel.app";
 const OPENROUTER_TITLE = "Cosmic Canvas";
 
 // Fallback layout in case AI output is invalid
@@ -169,7 +173,7 @@ const HF_URL = "https://api-inference.huggingface.co/models/stable-diffusion-xl-
 // Enhance Prompt using OpenRouter Gemini 2.0 Flash API
 const GEMINI_FLASH_MODEL = 'google/gemini-2.0-flash-exp:free';
 
-const API_BASE = 'http://127.0.0.1:5000';
+const API_BASE = 'https://cosmic-canvas.onrender.com';
 
 // Add at the top of the file with other global variables
 const MAX_RETRIES = 3;
@@ -208,6 +212,19 @@ window.addEventListener('load', function() {
   document.querySelector('.export-btn').addEventListener('click', function() {
     exportCanvas('png', 1.0);
   });
+// Define keyboardHandlers to prevent ReferenceError
+const keyboardHandlers = {
+  init: function() {
+    // Initialize keyboard event listeners here if needed
+    // For now, this is a placeholder to prevent errors.
+    console.log('keyboardHandlers.init() called');
+    // Example: document.addEventListener('keydown', this.handleKeyDown.bind(this));
+  },
+  // handleKeyDown: function(e) {
+    // console.log('Key pressed:', e.key);
+    // Add actual keyboard handling logic here
+  // }
+};
   keyboardHandlers.init();
 });
 
@@ -290,6 +307,7 @@ function initCanvas() {
   document.addEventListener('keydown', function(e) {
     if (e.key === 'Delete' || e.key === 'Backspace') {
       const activeObject = canvas.getActiveObject();
+      
       if (activeObject && !activeObject.isEditing) {
         e.preventDefault();
         canvas.remove(activeObject);
@@ -312,7 +330,25 @@ function initCanvas() {
 
   // Prevent accidental browser back on backspace
   window.addEventListener('keydown', function(e) {
-    if (e.key === 'Backspace' && !e.target.matches('input, textarea')) {
+    if (e.key === 'Backspace') {
+      const target = e.target;
+      const activeObject = canvas.getActiveObject();
+      const isFabricEditing = activeObject && activeObject.isEditing;
+
+      let isStandardEditableField = false;
+      if (target) {
+        const tagName = target.tagName ? target.tagName.toUpperCase() : '';
+        if (tagName === 'INPUT' || tagName === 'TEXTAREA' || target.isContentEditable === true) {
+          isStandardEditableField = true;
+        }
+      }
+      
+      if (isStandardEditableField || isFabricEditing) {
+        // Allow default action for editable fields or when Fabric is editing.
+        return;
+      }
+      
+      // If not an editable field and not Fabric editing, prevent default (e.g., browser back).
       e.preventDefault();
     }
   });
@@ -324,12 +360,40 @@ function initCanvas() {
 
   // Add double-click selection
   canvas.on('mouse:dblclick', function(opt) {
-    const pointer = canvas.getPointer(opt.e);
-    const clickedObject = canvas.findTarget(opt.e);
+    const target = opt.target; // Use opt.target, it's generally more reliable
     
-    if (clickedObject) {
-        canvas.setActiveObject(clickedObject);
-        canvas.requestRenderAll();
+    if (target) {
+        canvas.setActiveObject(target); // Ensure it's the active object
+
+        // If the double-clicked object is an IText, enter editing mode
+        if (target.type === 'i-text') {
+            // If the target is an IText, handle specific logic for cursor placement
+            if (!target.isEditing) {
+                target.enterEditing(); // Enter editing mode. This might select the word by default.
+                // Use setTimeout to delay setting the cursor position.
+                // This allows Fabric's internal double-click handling (which might select the word)
+                // to complete, and then we override the selection to be a single cursor point.
+                setTimeout(() => {
+                    if (target.isEditing) { // Check if still in editing mode
+                        const pointerIndex = target.getSelectionStartFromPointer(opt.e);
+                        target.setSelectionStart(pointerIndex);
+                        target.setSelectionEnd(pointerIndex);
+                        canvas.requestRenderAll(); // Re-render to show the cursor correctly
+                    }
+                }, 0);
+            } else {
+                // If already editing, just position the cursor
+                const pointerIndex = target.getSelectionStartFromPointer(opt.e);
+                target.setSelectionStart(pointerIndex);
+                target.setSelectionEnd(pointerIndex);
+                canvas.requestRenderAll(); // Re-render to show updated cursor position
+            }
+        } else {
+            // For non-IText objects, the setActiveObject call at the start of the
+            // 'if (target)' block (line 366) is usually sufficient.
+            // The canvas.requestRenderAll() ensures any state change is visualized.
+            canvas.requestRenderAll();
+        }
     }
   });
 }
@@ -557,8 +621,35 @@ function initTools() {
     document.getElementById('underlineBtn').addEventListener('click', toggleUnderline);
 
     // Layer Management
-    document.getElementById('moveUpBtn').addEventListener('click', moveUp);
-    document.getElementById('moveDownBtn').addEventListener('click', moveDown);
+    console.log("Attempting to find moveUpBtn:", document.getElementById('moveUpBtn')); // DEBUG LOG
+    console.log("Attempting to find moveDownBtn:", document.getElementById('moveDownBtn')); // DEBUG LOG
+
+    console.log("Type of moveUp function at listener attachment:", typeof moveUp); // DEBUG LOG
+    console.log("Type of moveDown function at listener attachment:", typeof moveDown); // DEBUG LOG
+
+    try {
+        const moveUpButton = document.getElementById('moveUpBtn');
+        if (moveUpButton) {
+            moveUpButton.addEventListener('click', moveUp);
+            console.log("Event listener for moveUpBtn successfully ADDED."); // DEBUG LOG
+        } else {
+            console.error("moveUpBtn element was NULL when trying to add listener."); // DEBUG LOG
+        }
+    } catch (e) {
+        console.error("Error adding event listener for moveUpBtn:", e); // DEBUG LOG
+    }
+
+    try {
+        const moveDownButton = document.getElementById('moveDownBtn');
+        if (moveDownButton) {
+            moveDownButton.addEventListener('click', moveDown);
+            console.log("Event listener for moveDownBtn successfully ADDED."); // DEBUG LOG
+        } else {
+            console.error("moveDownBtn element was NULL when trying to add listener."); // DEBUG LOG
+        }
+    } catch (e) {
+        console.error("Error adding event listener for moveDownBtn:", e); // DEBUG LOG
+    }
 
     // Delete and Duplicate
     document.getElementById('deleteBtn').addEventListener('click', deleteSelected);
@@ -874,12 +965,20 @@ function handleKeyboardShortcuts(e) {
                 redo();
         return;
     }
-    // Delete selected
-    if (e.key === 'Delete' || e.key === 'Backspace') {
-                e.preventDefault();
-        deleteSelected();
-        return;
+    // Delete selected (Delete key only, Backspace is handled by a more specific listener)
+    if (e.key === 'Delete') {
+        const activeObject = canvas.getActiveObject();
+        // Only delete if an object is active and not currently being edited,
+        // and the focus is not on an input/textarea.
+        if (activeObject && !activeObject.isEditing &&
+            e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA' && !e.target.isContentEditable) {
+            e.preventDefault();
+            deleteSelected();
+            return;
+        }
     }
+    // Backspace handling was removed from here to avoid conflicts.
+    // It's handled by the listener around line 307, which checks activeObject.isEditing.
 }
 
 document.addEventListener('keydown', handleKeyboardShortcuts);
@@ -1057,6 +1156,7 @@ document.addEventListener('keydown', handleKeyboardEvent);
 
 // History Management
 function saveToHistory() {
+    if (isLoadingState) return; // Don't save if we are in the middle of loading a state
     // Remove any undone actions
     history = history.slice(0, historyIndex + 1);
     
@@ -1087,8 +1187,10 @@ function redo() {
 }
 
 function loadFromHistory() {
+    isLoadingState = true; // Set flag before loading
     canvas.loadFromJSON(history[historyIndex], () => {
         canvas.renderAll();
+        isLoadingState = false; // Reset flag after loading and rendering
     });
 }
 
@@ -1302,27 +1404,69 @@ function updateOpacity(value) {
  * @returns {void}
  */
 function moveUp() {
-    const selectedObject = canvas.getActiveObject();
-    if (!selectedObject) throw new Error("No object selected.");
-    const objects = canvas.getObjects();
-    const idx = objects.indexOf(selectedObject);
-    if (idx === objects.length - 1) {
-        console.log("Object is at the highest layer.");
-        return;
+    console.log("moveUp function CALLED"); // ADDED FOR VERY BASIC CHECK
+    const activeObject = canvas.getActiveObject();
+    if (activeObject) {
+        console.log("Move Up: Active object:", activeObject);
+        const initialObjects = canvas.getObjects().slice(); // Get a copy
+        const initialIndex = initialObjects.indexOf(activeObject);
+        console.log(`Move Up: Initial index: ${initialIndex} of ${initialObjects.length - 1}`);
+
+        canvas.bringForward(activeObject);
+        canvas.requestRenderAll(); // Use requestRenderAll
+
+        // Use a timeout to allow Fabric.js to potentially update its internal state
+        // before we check the index again.
+        setTimeout(() => {
+            const finalObjects = canvas.getObjects().slice();
+            const finalIndex = finalObjects.indexOf(activeObject);
+            console.log(`Move Up: Final index: ${finalIndex} of ${finalObjects.length - 1}`);
+            if (initialIndex === finalIndex && initialObjects.length > 1 && initialIndex < initialObjects.length - 1) {
+                console.warn("Move Up: Object's index in the stack did NOT change as expected.");
+            } else if (finalIndex > initialIndex || (initialIndex === initialObjects.length - 1 && finalIndex === initialObjects.length - 1)) {
+                console.log("Move Up: Object successfully moved forward or was already at the top.");
+            }
+            // canvas.requestRenderAll(); // Re-render again just in case, after logging
+        }, 50); // 50ms delay
+
+        // saveToHistory(); // Temporarily commented out for debugging
+    } else {
+        console.warn("Move Up: No object selected.");
     }
-    canvas.moveTo(selectedObject, idx + 1);
-    highlightObject(selectedObject);
-        canvas.renderAll();
-    saveToHistory?.();
 }
 
 /**
  * Moves the selected object one layer down (backward) in the canvas stack.
- * @throws {Error} If no object is selected.
  * @returns {void}
  */
 function moveDown() {
-    const selectedObject = canvas.getActiveObject();
+    console.log("moveDown function CALLED"); // ADDED FOR VERY BASIC CHECK
+    const activeObject = canvas.getActiveObject();
+    if (activeObject) {
+        console.log("Move Down: Active object:", activeObject);
+        const initialObjects = canvas.getObjects().slice(); // Get a copy
+        const initialIndex = initialObjects.indexOf(activeObject);
+        console.log(`Move Down: Initial index: ${initialIndex} of ${initialObjects.length - 1}`);
+
+        canvas.sendBackwards(activeObject);
+        canvas.requestRenderAll(); // Use requestRenderAll
+
+        setTimeout(() => {
+            const finalObjects = canvas.getObjects().slice();
+            const finalIndex = finalObjects.indexOf(activeObject);
+            console.log(`Move Down: Final index: ${finalIndex} of ${finalObjects.length - 1}`);
+            if (initialIndex === finalIndex && initialObjects.length > 1 && initialIndex > 0) {
+                console.warn("Move Down: Object's index in the stack did NOT change as expected.");
+            } else if (finalIndex < initialIndex || (initialIndex === 0 && finalIndex === 0)) {
+                console.log("Move Down: Object successfully moved backward or was already at the bottom.");
+            }
+            // canvas.requestRenderAll(); // Re-render again just in case, after logging
+        }, 50); // 50ms delay
+
+        // saveToHistory(); // Temporarily commented out for debugging
+    } else {
+        console.warn("Move Down: No object selected.");
+    }
     if (!selectedObject) throw new Error("No object selected.");
     const objects = canvas.getObjects();
     const idx = objects.indexOf(selectedObject);
@@ -1336,10 +1480,60 @@ function moveDown() {
     saveToHistory?.();
 }
 
+async function fetchAndDisplayCaptions() {
+    const prompt = imagePromptInput.value.trim() || designDescriptionInput.value.trim();
+    if (!prompt) {
+        showError(document.getElementById('errorDisplay'), 'Please enter a prompt or design description');
+        return;
+    }
+    
+    showLoading('Generating captions...');
+    try {
+        const data = await retryOperation(async () => {
+            const response = await fetch(`${API_BASE}/suggest-captions`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    prompt,
+                    purpose: selectedPurpose
+                })
+            });
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        });
+        
+        if (data.error) {
+            throw new Error(data.error);
+        }
+        displayCaptions(data.result);
+    } catch (error) {
+        showError(document.getElementById('errorDisplay'), error.message);
+    } finally {
+        hideLoading();
+    }
+}
+
+function displayCaptions(captions) {
+    if (!captionsList) return;
+    captionsList.innerHTML = '';
+    captions.forEach((caption, index) => {
+        const captionElement = document.createElement('div');
+        captionElement.className = 'caption-option';
+        captionElement.innerHTML = `
+            <p>${caption}</p>
+            <button onclick="addCaptionToCanvas('${caption.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, '\\n')}')">Add to Canvas</button>
+        `;
+        captionsList.appendChild(captionElement);
+    });
+}
+
 // AI Functionality
 function initAIFunctionality() {
     // Left sidebar (Image Generation)
-    const imagePromptInput = document.getElementById('imagePrompt');
+    imagePromptInput = document.getElementById('imagePrompt'); // Assign to global
     const generateImageBtn = document.getElementById('generateImageBtn');
     const enhancePromptBtn = document.getElementById('enhancePromptBtn');
     // Purpose selection
@@ -1360,32 +1554,9 @@ function initAIFunctionality() {
                 return;
             }
         try {
-            showLoading('Enhancing prompt...');
-            
-            // Enhance prompt with retry
-            const enhanceData = await retryOperation(async () => {
-                const response = await fetch(`${API_BASE}/enhance-prompt`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        prompt,
-                        purpose: selectedPurpose,
-                        width: currentWidth,
-                        height: currentHeight
-                    })
-                });
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            });
-            
-            if (enhanceData.error) {
-                throw new Error(enhanceData.error);
-            }
-
-            showLoading('Generating image...');
+            // Removed automatic prompt enhancement.
+            // "Generate Image" will now use the prompt directly from the input field.
+            showLoading('Generating image...'); // Show only this loading message
             
             // Generate image with retry
             const response = await retryOperation(async () => {
@@ -1393,7 +1564,7 @@ function initAIFunctionality() {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        prompt: enhanceData.result,
+                        prompt: prompt, // Use the original prompt from the input field
                         width: currentWidth,
                         height: currentHeight,
                         purpose: selectedPurpose
@@ -1419,10 +1590,10 @@ function initAIFunctionality() {
                 canvas.add(img);
                 canvas.renderAll();
                 saveToHistory();
+                hideLoading();
             });
         } catch (error) {
             showError(document.getElementById('errorDisplay'), error.message);
-        } finally {
             hideLoading();
         }
     });
@@ -1435,6 +1606,7 @@ function initAIFunctionality() {
         return;
     }
         try {
+            showLoading('Enhancing prompt...'); // Added loading indicator
             const response = await fetch(`${API_BASE}/enhance-prompt`, {
             method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -1454,11 +1626,13 @@ function initAIFunctionality() {
             imagePromptInput.value = data.result;
     } catch (error) {
             showError(document.getElementById('errorDisplay'), 'Failed to enhance prompt');
+        } finally {
+            hideLoading(); // Added to ensure loading indicator is hidden
         }
     });
 
     // Right sidebar (Layout Generation)
-    const designDescriptionInput = document.getElementById('designDescription');
+    designDescriptionInput = document.getElementById('designDescription'); // Assign to global
     const generateDesignBtn = document.getElementById('generateDesignBtn');
     generateDesignBtn.addEventListener('click', async () => {
         const prompt = designDescriptionInput.value.trim();
@@ -1525,59 +1699,11 @@ function initAIFunctionality() {
     const captionsList = document.getElementById('captionsList');
     const regenerateCaptionsBtn = document.getElementById('regenerateCaptionsBtn');
 
-    async function fetchAndDisplayCaptions() {
-        const prompt = imagePromptInput.value.trim() || designDescriptionInput.value.trim();
-        if (!prompt) {
-            showError(document.getElementById('errorDisplay'), 'Please enter a prompt or design description');
-            return;
-        }
-        
-        showLoading('Generating captions...');
-        try {
-            const data = await retryOperation(async () => {
-                const response = await fetch(`${API_BASE}/suggest-captions`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        prompt,
-                        purpose: selectedPurpose
-                    })
-                });
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            });
-            
-            if (data.error) {
-                throw new Error(data.error);
-            }
-            displayCaptions(data.result);
-        } catch (error) {
-            showError(document.getElementById('errorDisplay'), error.message);
-        } finally {
-            hideLoading();
-        }
-    }
-
+    // The event listener for regenerateCaptionsBtn will now use the globally accessible fetchAndDisplayCaptions
     if (regenerateCaptionsBtn) {
         regenerateCaptionsBtn.addEventListener('click', fetchAndDisplayCaptions);
     }
-
-    function displayCaptions(captions) {
-        if (!captionsList) return;
-        captionsList.innerHTML = '';
-        captions.forEach((caption, index) => {
-            const captionElement = document.createElement('div');
-            captionElement.className = 'caption-option';
-            captionElement.innerHTML = `
-                <p>${caption}</p>
-                <button onclick="addCaptionToCanvas('${caption.replace(/'/g, "\\'")}')">Add to Canvas</button>
-            `;
-            captionsList.appendChild(captionElement);
-        });
-    }
+    // displayCaptions function is now defined globally
 }
 
 function setupAIEventListeners() {
@@ -1630,59 +1756,71 @@ function showError(element, message) {
     }
 }
 
-function displayCaptions(captions) {
-    const captionsContainer = document.getElementById('captionsContainer');
-    if (!captionsContainer) return;
-
-    captionsContainer.innerHTML = '';
-    captions.forEach((caption, index) => {
-        const captionElement = document.createElement('div');
-        captionElement.className = 'caption-option';
-        captionElement.innerHTML = `
-            <p>${caption}</p>
-            <button onclick="addCaptionToCanvas('${caption.replace(/'/g, "\\'")}')">Add to Canvas</button>
-        `;
-        captionsContainer.appendChild(captionElement);
-    });
-}
+// This duplicate function is removed. The one moved to global scope will be used.
 
 function addCaptionToCanvas(caption) {
-    // Set width to canvas width minus padding (e.g., 60px)
-    let padding = 60;
-    let maxWidth = Math.max(100, canvas.width - padding);
+    console.log("addCaptionToCanvas CALLED. Incoming caption:", caption);
+    console.log(`Canvas dimensions: width=${canvas.width}, height=${canvas.height}`);
+
+    // Define padding and calculate max width for the caption
+    let horizontalPadding = canvas.width * 0.1; // 10% padding on each side
+    let calculatedMaxWidth = canvas.width - (2 * horizontalPadding);
+    calculatedMaxWidth = Math.max(150, Math.min(calculatedMaxWidth, canvas.width * 0.85)); // Ensure min width & cap at 85% of canvas
+    console.log(`Calculated maxWidth for caption: ${calculatedMaxWidth}`);
+
+    // Adaptive font size
+    const defaultFontSize = Math.max(16, Math.min(28, Math.floor(canvas.height * 0.03))); // Slightly smaller max adaptive font
+    console.log(`Calculated defaultFontSize for caption: ${defaultFontSize}`);
+
     const textbox = new fabric.IText(caption, {
         left: canvas.width / 2,
-        top: canvas.height / 2,
-        width: maxWidth,
-        fontSize: 30,
+        top: canvas.height * 0.75, // Initial placement towards bottom-center
+        width: calculatedMaxWidth,      // Set the desired width for wrapping
+        fixedWidth: calculatedMaxWidth, // Force this width for bounding box
+        fontSize: defaultFontSize,
         fontFamily: 'Arial',
         fill: '#000000',
+        backgroundColor: 'rgba(255, 255, 255, 0.75)',
+        padding: 10,
         textAlign: 'center',
         originX: 'center',
         originY: 'center',
         editable: true,
         selectable: true,
         hasControls: true,
-        splitByGrapheme: true, // for best wrapping
+        splitByGrapheme: true, // Important for accurate wrapping
         lockUniScaling: true,
-        minWidth: 100,
-        maxWidth: maxWidth
     });
-    // Force wrapping and width
-    textbox.set({
-        width: maxWidth,
-        styles: {}
-    });
-    // Optionally, shrink font size if text still overflows (auto-fit)
-    textbox.on('scaling', function() {
-        if (textbox.width > maxWidth) {
-            textbox.set({ width: maxWidth });
-        }
-    });
+
+    console.log("Textbox object created with width and fixedWidth.");
+    console.log(`Textbox initial properties: width=${textbox.width}, height=${textbox.height}, fontSize=${textbox.fontSize}, fixedWidth=${textbox.fixedWidth}`);
+    console.log(`Textbox internal _textLines after creation:`, textbox._textLines);
+
+
     canvas.add(textbox);
     canvas.setActiveObject(textbox);
-    canvas.renderAll();
-    saveToHistory();
+
+    textbox.setCoords(); // Update coordinates and dimensions
+    console.log(`Textbox after setCoords: width=${textbox.width}, scaledWidth=${textbox.getScaledWidth()}, height=${textbox.height}, scaledHeight=${textbox.getScaledHeight()}`);
+    console.log(`Textbox after setCoords: top=${textbox.top}, left=${textbox.left}`);
+    
+    // Boundary checks - ensure it's visible on canvas
+    if (textbox.top - (textbox.getScaledHeight() / 2) < 0) {
+        textbox.set('top', (textbox.getScaledHeight() / 2) + (canvas.height * 0.02));
+    }
+    if (textbox.top + (textbox.getScaledHeight() / 2) > canvas.height) {
+        textbox.set('top', canvas.height - (textbox.getScaledHeight() / 2) - (canvas.height * 0.02));
+    }
+    if (textbox.left - (textbox.getScaledWidth() / 2) < 0) {
+        textbox.set('left', (textbox.getScaledWidth() / 2) + (canvas.width * 0.02));
+    }
+    if (textbox.left + (textbox.getScaledWidth() / 2) > canvas.width) {
+        textbox.set('left', canvas.width - (textbox.getScaledWidth() / 2) - (canvas.width * 0.02));
+    }
+    console.log(`Textbox after boundary checks: top=${textbox.top}, left=${textbox.left}`);
+    
+    canvas.requestRenderAll();
+    saveToHistory(); // Assuming saveToHistory is defined and working
 }
 
 // 1. Fix clear canvas tool
