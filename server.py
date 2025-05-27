@@ -12,23 +12,31 @@ import time
 import random
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": ["https://cosmic-canvas-delta.vercel.app"]}})
+CORS(app, resources={r"/*": {
+    "origins": ["https://cosmic-canvas-delta.vercel.app", "http://127.0.0.1:5501"],
+    "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    "allow_headers": ["Content-Type", "Authorization"],
+    "supports_credentials": True
+}})
 
 # Configuration
 HF_API_TOKEN = os.getenv("HUGGING_FACE_API_KEY")
 HF_IMAGE_URL = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0"
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
-print("OpenRouter API Key:", OPENROUTER_API_KEY)
+if OPENROUTER_API_KEY:
+    OPENROUTER_API_KEY = OPENROUTER_API_KEY.strip()
+# print(f"OpenRouter API Key (after strip): '{OPENROUTER_API_KEY}' (Length: {len(OPENROUTER_API_KEY) if OPENROUTER_API_KEY else 0}, Type: {type(OPENROUTER_API_KEY)})") # Debug line removed
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 
 
-def call_openrouter_gemini(prompt, max_retries=3):
+def call_openrouter_gemini(prompt, max_retries=5):
+    # print(f"DEBUG: Inside call_openrouter_gemini - API Key: '{OPENROUTER_API_KEY}' (Length: {len(OPENROUTER_API_KEY) if OPENROUTER_API_KEY else 0}, Type: {type(OPENROUTER_API_KEY)})") # Debug line removed
     headers = {
         "Authorization": f"Bearer {OPENROUTER_API_KEY}",
         "Content-Type": "application/json"
     }
     data = {
-        "model": "google/gemini-2.0-flash-exp:free",
+        "model": "google/gemini-2.0-flash-exp:free", # Reverting to Gemini model
         "messages": [
             {"role": "user", "content": prompt}
         ]
@@ -41,7 +49,7 @@ def call_openrouter_gemini(prompt, max_retries=3):
             
             if response.status_code == 429 or ('error' in result and 'rate-limited' in str(result['error'])):
                 if attempt < max_retries - 1:
-                    wait_time = (2 ** attempt) + random.uniform(0, 1)
+                    wait_time = (2 ** attempt) * 2 + random.uniform(0, 1) # Increased wait time
                     time.sleep(wait_time)
                     continue
                 else:
@@ -51,7 +59,7 @@ def call_openrouter_gemini(prompt, max_retries=3):
         except Exception as e:
             if attempt == max_retries - 1:
                 raise e
-            wait_time = (2 ** attempt) + random.uniform(0, 1)
+            wait_time = (2 ** attempt) * 2 + random.uniform(0, 1) # Increased wait time
             time.sleep(wait_time)
     
     return response.json()
