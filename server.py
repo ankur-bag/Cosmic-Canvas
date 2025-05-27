@@ -12,7 +12,7 @@ import time
 import random
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
+CORS(app, resources={r"/*": {"origins": ["https://cosmic-canvas-delta.vercel.app"]}})
 
 # Configuration
 HF_API_TOKEN = os.getenv("HUGGING_FACE_API_KEY")
