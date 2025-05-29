@@ -49,29 +49,25 @@ We're democratizing design by making it accessible, editable, and intuitive for 
 -----
 
 ## 🧩 Challenges We Faced
+Building Cosmic Canvas was a rewarding journey, but it came with its fair share of technical and creative hurdles—especially in merging AI-powered generation with an interactive design experience.
 
-*Building Cosmic Canvas involved overcoming several exciting technical and UX hurdles, particularly in seamlessly integrating AI generation with a highly editable design environment:*
+🛠️ Maintaining Tool-Wide Functionality
+Combining features like canvas editing, AI generation, custom sizing, and dynamic downloads into one cohesive tool was complex. Ensuring that these modules worked seamlessly together without breaking other parts of the interface required rigorous integration testing and a modular approach.
 
-1.  **Making Fabric.js Feel Like Photoshop:** Achieving a fluid, independent canvas with robust pan/zoom, precise object manipulation, and seamless layering was a significant challenge. We customized Fabric.js logic to isolate canvas zoom from UI panels and manually recalibrated ruler alignment and unit handling (pixels, cm, inches) for a professional feel.
-2.  **Eraser and Shape Tools Malfunctioning:** Initially, the eraser tool interfered with brush behavior, and newly added shapes couldn't be moved or resized. We restructured the tool selection logic and ensured every canvas element was interactive and correctly bound to its behavior, allowing for intuitive manipulation.
-3.  **Cropped Logo Stretching Issues:** Our `cropped_logo.png` appeared stretched on various pages due to aspect ratio mismatches. We implemented consistent CSS styling (`object-fit: contain`) and custom height/width rules to ensure correct visual representation across all landing, login, and signup pages.
-4.  **Loader Display Logic:** The animated logo loader was appearing during in-page scrolls (e.g., in the Features or About sections), which disrupted the user experience. We refined the logic to display the loader only during full-page navigations (e.g., Login to Canvas), significantly improving perceived performance and user flow.
-5.  **Performance vs. Aesthetics:** Balancing visually rich live effects (glowing particles, gradient animations) with fast load times was a delicate act. We optimized CSS animations and incorporated lightweight particle systems with conditional loading on mobile devices, ensuring a delightful yet performant experience.
-6.  **API Rate-Limiting and Free Tier Constraints**:
-During the development of Cosmic Canvas, one of the significant challenges we encountered was the reliance on free-tier API keys for AI model integration. While these free APIs allowed us to test and iterate on our features without incurring costs, they came with limitations that impacted user experience and scalability:
+📏 Dynamic Canvas Resizing
+Supporting various canvas sizes—like Instagram posts, posters, and banners—meant implementing a flexible resizing system. We had to ensure accurate unit handling (px, cm, in) while maintaining visual consistency and responsiveness across devices.
 
-      **Rate-Limiting**: The APIs we used were subject to strict rate-limiting, meaning only a limited number of requests could be processed within a given time frame. This caused delays or temporary 
-      unavailability of features, especially during peak usage or stress testing.
+🧾 Making Text Feel Like a Layout
+A major challenge was positioning AI-generated text so it looked like a polished layout, not just random text boxes on a canvas. We developed logic to structure headings, subheadings, and captions in a visually balanced and readable format.
 
-      **Response Times**: Due to the shared nature of free-tier APIs, the response times were inconsistent. At times, generating high-quality AI outputs took longer than expected, causing frustration for both 
-      developers and users.
+🖼️ Generating Canvas-Fitting Images
+Our AI image outputs initially didn’t match the canvas dimensions, leading to poor fit or pixelation. We resolved this by feeding the exact canvas size into the prompt and applying proper scaling techniques, ensuring visuals aligned perfectly with user-defined dimensions.
 
-      **Resource Constraints**: Free-tier APIs often had reduced computational resources, leading to a compromise in the quality or resolution of generated outputs, particularly for resource-intensive tasks 
-      like image generation or dynamic element processing.
+🎯 Crafting Prompts for Contextual Backgrounds
+Instead of full-subject images, we needed backgrounds that complemented the content without overwhelming it. This required careful prompt engineering to guide AI toward generating ambient, design-friendly visuals.
 
-      **Debugging Complexity**: Differentiating between API-level issues (e.g., rate limits, downtime) and local application bugs was challenging, leading to extended debugging cycles.
-
-      Each of these challenges pushed our understanding of UI/UX engineering and led to a more refined, scalable, and user-friendly product.
+🧪 API Rate Limits & Free Tier Limitations
+Using free-tier APIs (like Hugging Face and OpenRouter) helped us prototype quickly, but came with downsides—strict rate limits, slower responses, and reduced quality under heavy load. Differentiating API issues from app bugs also made debugging harder. We addressed this with retry logic, loading indicators, and user alerts to manage expectations during peak use.
 
 -----
 
