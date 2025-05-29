@@ -84,7 +84,7 @@ Using free-tier APIs (like Hugging Face and OpenRouter) helped us prototype quic
 
 This project was a collaborative effort.
 
-  * **Co-creators:** *Samrit Mukherjee, Ankur Bag*
+  * **Co-creators:** *Ankur Bag , Samrit Mukherjee*
   * **Contributors:** *Dhritiman Siva, Monalisa Roy*
 
 -----
