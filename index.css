@@ -444,3 +444,24 @@ img {
   50% { border-color: orange; }
 }
 */
+/* API Warning Message Styling */
+#apiWarningMessage {
+  font-size: 0.9em;
+  color: #555; /* A slightly muted color */
+  margin-top: 8px;
+  text-align: center;
+  padding: 5px 10px;
+  background-color: #f8f8f8; /* A light background */
+  border-radius: 4px;
+  border: 1px solid #ddd;
+}
+
+/* Optional: Adjustments for the main loading indicator to better accommodate the new message */
+#loadingIndicator {
+  /* If you have existing styles for #loadingIndicator, they will be here. */
+  /* Consider adding/adjusting these if not already present for good layout: */
+  /* display: flex; */ /* Already set by JS, but good to have in CSS too */
+  /* flex-direction: column; */ /* To stack loading message and API warning */
+  /* align-items: center; */
+  /* justify-content: center; */
+}
