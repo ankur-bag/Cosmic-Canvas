@@ -222,7 +222,7 @@ const keyboardHandlers = {
   init: function() {
     // Initialize keyboard event listeners here if needed
     // For now, this is a placeholder to prevent errors.
-    console.log('keyboardHandlers.init() called');
+    // console.log('keyboardHandlers.init() called');
     // Example: document.addEventListener('keydown', this.handleKeyDown.bind(this));
   },
   // handleKeyDown: function(e) {
@@ -626,31 +626,31 @@ function initTools() {
     document.getElementById('underlineBtn').addEventListener('click', toggleUnderline);
 
     // Layer Management
-    console.log("Attempting to find moveUpBtn:", document.getElementById('moveUpBtn')); // DEBUG LOG
-    console.log("Attempting to find moveDownBtn:", document.getElementById('moveDownBtn')); // DEBUG LOG
+    // console.log("Attempting to find moveUpBtn:", document.getElementById('moveUpBtn')); // DEBUG LOG
+    // console.log("Attempting to find moveDownBtn:", document.getElementById('moveDownBtn')); // DEBUG LOG
 
-    console.log("Type of moveUp function at listener attachment:", typeof moveUp); // DEBUG LOG
-    console.log("Type of moveDown function at listener attachment:", typeof moveDown); // DEBUG LOG
+    // console.log("Type of moveUp function at listener attachment:", typeof moveUp); // DEBUG LOG
+    // console.log("Type of moveDown function at listener attachment:", typeof moveDown); // DEBUG LOG
 
     try {
         const moveUpButton = document.getElementById('moveUpBtn');
         if (moveUpButton) {
             moveUpButton.addEventListener('click', moveUp);
-            console.log("Event listener for moveUpBtn successfully ADDED."); // DEBUG LOG
+            // console.log("Event listener for moveUpBtn successfully ADDED."); // DEBUG LOG
         } else {
-            console.error("moveUpBtn element was NULL when trying to add listener."); // DEBUG LOG
+            // console.error("moveUpBtn element was NULL when trying to add listener."); // DEBUG LOG
         }
     } catch (e) {
-        console.error("Error adding event listener for moveUpBtn:", e); // DEBUG LOG
+        // console.error("Error adding event listener for moveUpBtn:", e); // DEBUG LOG
     }
 
     try {
         const moveDownButton = document.getElementById('moveDownBtn');
         if (moveDownButton) {
             moveDownButton.addEventListener('click', moveDown);
-            console.log("Event listener for moveDownBtn successfully ADDED."); // DEBUG LOG
+            // console.log("Event listener for moveDownBtn successfully ADDED."); // DEBUG LOG
         } else {
-            console.error("moveDownBtn element was NULL when trying to add listener."); // DEBUG LOG
+            // console.error("moveDownBtn element was NULL when trying to add listener."); // DEBUG LOG
         }
     } catch (e) {
         console.error("Error adding event listener for moveDownBtn:", e); // DEBUG LOG
@@ -1492,7 +1492,7 @@ async function fetchAndDisplayCaptions() {
         return;
     }
     
-    showLoading('Generating captions...');
+    showLoading('Generating captions...', true); // Pass true for API warning
     try {
         const data = await retryOperation(async () => {
             const response = await fetch(`${API_BASE}/suggest-captions`, {
@@ -1510,15 +1510,99 @@ async function fetchAndDisplayCaptions() {
             return response.json();
         });
         
+        // hideLoading(); // Hide loading after operation completes or fails
         if (data.error) {
             throw new Error(data.error);
         }
         displayCaptions(data.result);
     } catch (error) {
+        // hideLoading(); // Ensure loading is hidden on error
         showError(document.getElementById('errorDisplay'), error.message);
     } finally {
-        hideLoading();
+        hideLoading(); // Ensure loading is hidden in all cases
     }
+function fitAndCenterObjects() {
+    if (canvas.getObjects().length === 0) {
+        return; // No objects to fit or center
+    }
+
+    // Group all objects to treat them as a single entity for scaling and positioning
+    const allObjects = canvas.getObjects();
+    const group = new fabric.Group(allObjects, {
+        canvas: canvas,
+        originX: 'center',
+        originY: 'center'
+    });
+
+    // Calculate scale factor to fit the group within the canvas
+    const canvasWidth = canvas.getWidth();
+    const canvasHeight = canvas.getHeight();
+    const groupWidth = group.width * group.scaleX; // Consider current scale of the group
+    const groupHeight = group.height * group.scaleY;
+
+    // Add some padding
+    const padding = Math.min(canvasWidth, canvasHeight) * 0.05; // 5% padding
+    const availableWidth = canvasWidth - (2 * padding);
+    const availableHeight = canvasHeight - (2 * padding);
+
+    const scaleX = availableWidth / groupWidth;
+    const scaleY = availableHeight / groupHeight;
+    const scaleToFit = Math.min(scaleX, scaleY);
+
+    // Apply scaling and centering
+    group.scale(scaleToFit);
+    group.set({
+        left: canvasWidth / 2,
+        top: canvasHeight / 2,
+        originX: 'center',
+        originY: 'center'
+    });
+
+    // Ungroup objects and apply transformations
+    // Fabric.js groups can sometimes be tricky with individual object states.
+    // It's often better to calculate the new properties and apply them to individual objects
+    // or, if the group behavior is fine, keep them grouped.
+    // For simplicity here, we'll ungroup and re-add.
+
+    // Remove original objects
+    allObjects.forEach(obj => canvas.remove(obj));
+
+    // Add the transformed group (or its objects if ungrouped)
+    // If you want to keep them as individual objects after fitting:
+    group.destroy(); // Ungroup
+    const items = group.getObjects();
+    items.forEach(item => {
+        // The items are now relative to the group's center.
+        // We need to adjust their positions to be absolute on the canvas.
+        // This part can be complex if objects had prior transformations.
+        // A simpler approach for now is to add the scaled group, then ungroup.
+        // However, for direct manipulation, individual objects are better.
+
+        // For now, let's re-add the group, then immediately ungroup and select.
+        // This is a common pattern.
+    });
+
+    // A more robust way after calculating scale and position for the group:
+    // Iterate through original objects, apply the scale and reposition them
+    // relative to the new group center. This is more complex.
+
+    // Let's try adding the group, then ungrouping.
+    canvas.add(group); // Add the group
+    group.setCoords(); // Recalculate group coordinates
+
+    // Ungroup the objects on the canvas
+    const newGroupObjects = group.getObjects();
+    group._restoreObjectsState(); // Ungroup and restore objects
+    canvas.remove(group); // Remove the temporary group
+
+    newGroupObjects.forEach(obj => {
+        canvas.add(obj);
+    });
+
+
+    canvas.renderAll();
+    saveToHistory(); // Save state after fitting and centering
+}
 }
 
 function displayCaptions(captions) {
@@ -1561,7 +1645,7 @@ function initAIFunctionality() {
         try {
             // Removed automatic prompt enhancement.
             // "Generate Image" will now use the prompt directly from the input field.
-            showLoading('Generating image...'); // Show only this loading message
+            showLoading('Generating image...', true);
             
             // Generate image with retry
             const response = await retryOperation(async () => {
@@ -1611,7 +1695,7 @@ function initAIFunctionality() {
         return;
     }
         try {
-            showLoading('Enhancing prompt...'); // Added loading indicator
+            showLoading('Enhancing prompt...', true);
             const response = await fetch(`${API_BASE}/enhance-prompt`, {
             method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -1646,7 +1730,7 @@ function initAIFunctionality() {
             return;
         }
         try {
-            showLoading('Generating layout...');
+            showLoading('Generating layout...', true);
             const response = await fetch(`${API_BASE}/generate-layout`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -1659,14 +1743,14 @@ function initAIFunctionality() {
                 });
                 const data = await response.json();
             if (data.error) {
-                hideLoading();
+                // hideLoading(); // Will be handled by finally
                 showError(document.getElementById('errorDisplay'), data.error);
-                return;
+                return; // Exit early if API returns an error
             }
             // Clear and hide any previous error message
             const errorDisplay = document.getElementById('errorDisplay');
             errorDisplay.textContent = '';
-        errorDisplay.style.display = 'none';
+            errorDisplay.style.display = 'none';
             // Set background if provided
             if (data.result.background) {
                 canvas.setBackgroundColor(data.result.background, canvas.renderAll.bind(canvas));
@@ -1685,7 +1769,7 @@ function initAIFunctionality() {
                         originX: 'left',
                         originY: 'top',
                         editable: true,
-                    selectable: true,
+                        selectable: true,
                         hasControls: true
                     });
                     canvas.add(textbox);
@@ -1694,9 +1778,11 @@ function initAIFunctionality() {
             fitAndCenterObjects();
             canvas.renderAll();
             saveToHistory();
-            hideLoading();
+            // hideLoading(); // Will be handled by finally
         } catch (error) {
-           //howError(document.getElementById('errorDisplay'), 'GENERATED SUCCESSFULLY');
+           showError(document.getElementById('errorDisplay'), 'Failed to generate layout: ' + error.message);
+        } finally {
+            hideLoading(); // Ensure loading indicator is hidden in all cases
         }
     });
 
@@ -1890,10 +1976,19 @@ uploadInput.addEventListener('change', function(e) {
 });
 
 // Add loading indicator functions
-function showLoading(message = 'Generating...') {
+function showLoading(message = 'Generating...', showApiWarning = false) {
     const loadingIndicator = document.getElementById('loadingIndicator');
     const loadingMessage = document.getElementById('loadingMessage');
+    const apiWarningElement = document.getElementById('apiWarningMessage'); // Assuming you'll add an element with this ID
+
     loadingMessage.textContent = message;
+
+    if (showApiWarning && apiWarningElement) {
+        apiWarningElement.style.display = 'block';
+    } else if (apiWarningElement) {
+        apiWarningElement.style.display = 'none';
+    }
+
     loadingIndicator.style.display = 'flex';
 }
 
