@@ -174,7 +174,7 @@ const HF_URL = "https://api-inference.huggingface.co/models/stable-diffusion-xl-
 const GEMINI_FLASH_MODEL = 'google/gemini-2.0-flash-exp:free';
 
 let API_BASE;
-if (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost') {
+if (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost' || window.location.protocol === 'file:') {
     API_BASE = 'http://127.0.0.1:5000'; // For local development
 } else {
     API_BASE = 'https://cosmic-canvas.onrender.com'; // For deployed version
@@ -192,11 +192,23 @@ async function retryOperation(operation, maxRetries = MAX_RETRIES) {
             return await operation();
         } catch (error) {
             lastError = error;
-            if (error.message.includes('429') || error.message.includes('rate-limited')) {
+            // Check for rate limiting or temporary busy errors
+            if (error.message.includes('429') ||
+                error.message.includes('rate-limited') ||
+                error.message.includes('temporarily busy') ||
+                error.message.includes('AI model is busy')) {
                 const waitTime = RETRY_DELAY * Math.pow(2, i); // Exponential backoff
                 console.log(`Rate limited. Retrying in ${waitTime/1000} seconds...`);
                 await new Promise(resolve => setTimeout(resolve, waitTime));
                 continue;
+            }
+            // For connection errors, we might want to retry immediately for transient issues
+            if (error instanceof TypeError && error.message.includes('fetch')) {
+                console.log(`Connection error. Retry ${i+1}/${maxRetries}`);
+                if (i < maxRetries - 1) {
+                    await new Promise(resolve => setTimeout(resolve, 1000)); // Short delay before retry
+                    continue;
+                }
             }
             throw error;
         }
@@ -1492,31 +1504,48 @@ async function fetchAndDisplayCaptions() {
         return;
     }
     
-    showLoading('Generating captions...', true); // Pass true for API warning
+    showLoading('Generating 5 unique captions for your prompt...', true);
     try {
         const data = await retryOperation(async () => {
-            const response = await fetch(`${API_BASE}/suggest-captions`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    prompt,
-                    purpose: selectedPurpose
-                })
-            });
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+            try {
+                const response = await fetch(`${API_BASE}/suggest-captions`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        prompt,
+                        purpose: selectedPurpose
+                    })
+                });
+                
+                // Handle network errors
+                if (!response.ok) {
+                    let errorMessage = `HTTP error! status: ${response.status}`;
+                    try {
+                        const errorData = await response.json();
+                        errorMessage = errorData.error || errorMessage;
+                    } catch (e) {
+                        // If we can't parse JSON, use status text
+                        errorMessage = response.statusText || errorMessage;
+                    }
+                    throw new Error(errorMessage);
+                }
+                
+                return await response.json();
+            } catch (error) {
+                // Handle network connection errors specifically
+                if (error instanceof TypeError && error.message.includes('fetch')) {
+                    throw new Error('Failed to connect to the server. Please ensure the server is running.');
+                }
+                throw error;
             }
-            return response.json();
         });
         
-        // hideLoading(); // Hide loading after operation completes or fails
         if (data.error) {
             throw new Error(data.error);
         }
         displayCaptions(data.result);
     } catch (error) {
-        // hideLoading(); // Ensure loading is hidden on error
+        console.error('Caption generation error:', error);
         showError(document.getElementById('errorDisplay'), error.message);
     } finally {
         hideLoading(); // Ensure loading is hidden in all cases
@@ -1606,11 +1635,16 @@ function fitAndCenterObjects() {
 }
 
 function displayCaptions(captions) {
+    const captionsList = document.getElementById('captionsList');
     if (!captionsList) return;
     captionsList.innerHTML = '';
-    captions.forEach((caption, index) => {
+    
+    // Ensure we have an array of captions
+    const captionArray = Array.isArray(captions) ? captions : [captions];
+    
+    captionArray.forEach((caption, index) => {
         const captionElement = document.createElement('div');
-        captionElement.className = 'caption-option';
+        captionElement.className = 'caption-item';
         captionElement.innerHTML = `
             <p>${caption}</p>
             <button onclick="addCaptionToCanvas('${caption.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, '\\n')}')">Add to Canvas</button>
@@ -1649,21 +1683,38 @@ function initAIFunctionality() {
             
             // Generate image with retry
             const response = await retryOperation(async () => {
-                const res = await fetch(`${API_BASE}/generate`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        prompt: prompt, // Use the original prompt from the input field
-                        width: currentWidth,
-                        height: currentHeight,
-                        purpose: selectedPurpose
-                    })
-                });
-                if (!res.ok) {
-                    const errorData = await res.json();
-                    throw new Error(errorData.error || `HTTP error! status: ${res.status}`);
+                try {
+                    const res = await fetch(`${API_BASE}/generate`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            prompt: prompt, // Use the original prompt from the input field
+                            width: currentWidth,
+                            height: currentHeight,
+                            purpose: selectedPurpose
+                        })
+                    });
+                    
+                    // Handle network errors
+                    if (!res.ok) {
+                        let errorMessage = `HTTP error! status: ${res.status}`;
+                        try {
+                            const errorData = await res.json();
+                            errorMessage = errorData.error || errorMessage;
+                        } catch (e) {
+                            // If we can't parse JSON, use status text
+                            errorMessage = res.statusText || errorMessage;
+                        }
+                        throw new Error(errorMessage);
+                    }
+                    return res;
+                } catch (error) {
+                    // Handle network connection errors specifically
+                    if (error instanceof TypeError && error.message.includes('fetch')) {
+                        throw new Error('Failed to connect to the server. Please ensure the server is running.');
+                    }
+                    throw error;
                 }
-                return res;
             });
             
             const blob = await response.blob();
@@ -1682,6 +1733,7 @@ function initAIFunctionality() {
                 hideLoading();
             });
         } catch (error) {
+            console.error('Image generation error:', error);
             showError(document.getElementById('errorDisplay'), error.message);
             hideLoading();
         }
@@ -1692,29 +1744,56 @@ function initAIFunctionality() {
         const prompt = imagePromptInput.value.trim();
         if (!prompt) {
             showError(document.getElementById('errorDisplay'), 'Please enter a prompt');
-        return;
-    }
+            return;
+        }
         try {
             showLoading('Enhancing prompt...', true);
-            const response = await fetch(`${API_BASE}/enhance-prompt`, {
-            method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                    prompt,
-                    purpose: selectedPurpose,
-                    width: currentWidth,
-                    height: currentHeight
-            })
-        });
-        const data = await response.json();
+            // Use retry mechanism for rate limiting
+            const data = await retryOperation(async () => {
+                try {
+                    const response = await fetch(`${API_BASE}/enhance-prompt`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            prompt,
+                            purpose: selectedPurpose,
+                            width: currentWidth,
+                            height: currentHeight
+                        })
+                    });
+                    
+                    // Handle network errors
+                    if (!response.ok) {
+                        let errorMessage = `HTTP error! status: ${response.status}`;
+                        try {
+                            const errorData = await response.json();
+                            errorMessage = errorData.error || errorMessage;
+                        } catch (e) {
+                            // If we can't parse JSON, use status text
+                            errorMessage = response.statusText || errorMessage;
+                        }
+                        throw new Error(errorMessage);
+                    }
+                    
+                    return await response.json();
+                } catch (error) {
+                    // Handle network connection errors specifically
+                    if (error instanceof TypeError && error.message.includes('fetch')) {
+                        throw new Error('Failed to connect to the server. Please ensure the server is running.');
+                    }
+                    throw error;
+                }
+            });
+            
             if (data.error) {
                 showError(document.getElementById('errorDisplay'), data.error);
                 return;
             }
             // Instead of alert, set the enhanced prompt in the textarea
             imagePromptInput.value = data.result;
-    } catch (error) {
-            showError(document.getElementById('errorDisplay'), 'Failed to enhance prompt');
+        } catch (error) {
+            console.error('Prompt enhancement error:', error);
+            showError(document.getElementById('errorDisplay'), error.message);
         } finally {
             hideLoading(); // Added to ensure loading indicator is hidden
         }
@@ -1731,19 +1810,44 @@ function initAIFunctionality() {
         }
         try {
             showLoading('Generating layout...', true);
-            const response = await fetch(`${API_BASE}/generate-layout`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                    prompt,
-                    purpose: selectedPurpose,
-                    width: currentWidth,
-                    height: currentHeight
-                    })
-                });
-                const data = await response.json();
+            // Use retry mechanism for rate limiting
+            const data = await retryOperation(async () => {
+                try {
+                    const response = await fetch(`${API_BASE}/generate-layout`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            prompt,
+                            purpose: selectedPurpose,
+                            width: currentWidth,
+                            height: currentHeight
+                        })
+                    });
+                    
+                    // Handle network errors
+                    if (!response.ok) {
+                        let errorMessage = `HTTP error! status: ${response.status}`;
+                        try {
+                            const errorData = await response.json();
+                            errorMessage = errorData.error || errorMessage;
+                        } catch (e) {
+                            // If we can't parse JSON, use status text
+                            errorMessage = response.statusText || errorMessage;
+                        }
+                        throw new Error(errorMessage);
+                    }
+                    
+                    return await response.json();
+                } catch (error) {
+                    // Handle network connection errors specifically
+                    if (error instanceof TypeError && error.message.includes('fetch')) {
+                        throw new Error('Failed to connect to the server. Please ensure the server is running.');
+                    }
+                    throw error;
+                }
+            });
+            
             if (data.error) {
-                // hideLoading(); // Will be handled by finally
                 showError(document.getElementById('errorDisplay'), data.error);
                 return; // Exit early if API returns an error
             }
@@ -1778,9 +1882,9 @@ function initAIFunctionality() {
             fitAndCenterObjects();
             canvas.renderAll();
             saveToHistory();
-            // hideLoading(); // Will be handled by finally
         } catch (error) {
-           showError(document.getElementById('errorDisplay'), 'Failed to generate layout: ' + error.message);
+            console.error('Layout generation error:', error);
+            showError(document.getElementById('errorDisplay'), 'Failed to generate layout: ' + error.message);
         } finally {
             hideLoading(); // Ensure loading indicator is hidden in all cases
         }
@@ -1823,28 +1927,9 @@ function setupAIEventListeners() {
 }
 
 function showError(element, message) {
-    if (!element) return;
-    
-    element.textContent = message;
-    element.style.display = 'block';
-    
-    // Add different styling for rate limit errors
-    if (message.includes('rate-limited') || message.includes('429')) {
-        element.style.backgroundColor = '#fff3cd';
-        element.style.color = '#856404';
-        element.style.borderColor = '#ffeeba';
-    } else {
-        element.style.backgroundColor = '#f8d7da';
-        element.style.color = '#721c24';
-        element.style.borderColor = '#f5c6cb';
-    }
-    
-    // Only auto-hide non-rate-limit errors
-    if (!message.includes('rate-limited') && !message.includes('429')) {
-        setTimeout(() => {
-            element.style.display = 'none';
-        }, 5000);
-    }
+    // Don't show error messages on screen for presentation
+    console.error('Error:', message);
+    return;
 }
 
 // This duplicate function is removed. The one moved to global scope will be used.
@@ -1995,6 +2080,17 @@ function showLoading(message = 'Generating...', showApiWarning = false) {
 function hideLoading() {
     const loadingIndicator = document.getElementById('loadingIndicator');
     loadingIndicator.style.display = 'none';
+    
+    // Hide error display after successful operations
+    const errorDisplay = document.getElementById('errorDisplay');
+    if (errorDisplay && errorDisplay.style.display !== 'none') {
+        // Only hide non-rate-limit errors
+        const message = errorDisplay.textContent;
+        if (!message.includes('rate-limited') && !message.includes('429') &&
+            !message.includes('busy') && !message.includes('Retry in')) {
+            errorDisplay.style.display = 'none';
+        }
+    }
 }
 
 // ... existing code ...
