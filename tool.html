@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cosmic Canvas - Design Tool</title>
-<link rel="icon" type="image/png" href="logo.png">
+    <link rel="icon" type="image/png" href="logo.png">
     <!-- Load dependencies first -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
     <!-- Load utility scripts -->
@@ -12,7 +13,7 @@
     <!-- Material Icons -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <!-- Then load styles -->
-    <link rel="stylesheet" href="tool.css">
+    <link rel="stylesheet" href="tool.css?v=3">
     <!-- <link rel="stylesheet" href="toolbar.css"> // Removed as per user request -->
     <style>
         .error-display {
@@ -28,8 +29,9 @@
             left: 50%;
             transform: translateX(-50%);
             z-index: 1000;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
+
         .loading-indicator {
             position: fixed;
             bottom: 20px;
@@ -44,6 +46,7 @@
             z-index: 1000;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
         }
+
         .spinner {
             width: 20px;
             height: 20px;
@@ -52,14 +55,31 @@
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
+
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
-        .success { color: #4BB543; background-color: #e6ffe6; border-color: #4BB543; }
-        .warning { color: #ff9933; background-color: #fff3e6; border-color: #ff9933; }
+
+        .success {
+            color: #4BB543;
+            background-color: #e6ffe6;
+            border-color: #4BB543;
+        }
+
+        .warning {
+            color: #ff9933;
+            background-color: #fff3e6;
+            border-color: #ff9933;
+        }
     </style>
 </head>
+
 <body>
     <div class="app-container">
         <!-- Header with logo and size controls -->
@@ -87,16 +107,20 @@
             <div id="loadingIndicator" class="loading-indicator" style="display: none;">
                 <div class="spinner"></div>
                 <span id="loadingMessage">Generating...</span>
-                <p id="apiWarningMessage" style="display: none;">Using free API services. This may take a moment, thank you for your patience!</p>
+                <p id="apiWarningMessage" style="display: none;">Using free API services. This may take a moment, thank
+                    you for your patience!</p>
             </div>
         </header>
 
         <!-- Toolbar (full width, above main-content) -->
         <div class="toolbar-top">
             <div class="tool-group">
-                <button class="tool-btn" title="Select" id="selectTool"><i class="material-icons">select_all</i></button>
-                <button class="tool-btn" title="Rectangle" id="rectangleTool"><i class="material-icons">crop_square</i></button>
-                <button class="tool-btn" title="Circle" id="circleTool"><i class="material-icons">radio_button_unchecked</i></button>
+                <button class="tool-btn" title="Select" id="selectTool"><i
+                        class="material-icons">select_all</i></button>
+                <button class="tool-btn" title="Rectangle" id="rectangleTool"><i
+                        class="material-icons">crop_square</i></button>
+                <button class="tool-btn" title="Circle" id="circleTool"><i
+                        class="material-icons">radio_button_unchecked</i></button>
                 <button class="tool-btn" title="Text" id="textTool"><i class="material-icons">text_fields</i></button>
             </div>
             <div class="tool-group">
@@ -130,14 +154,20 @@
                     <input type="color" id="textColorPicker" title="Text Color" value="#000000">
                     <span class="color-label">Text</span>
                 </div>
-                <button class="tool-btn" title="Bold" id="boldBtn" data-format="bold"><i class="material-icons">format_bold</i></button>
-                <button class="tool-btn" title="Italic" id="italicBtn" data-format="italic"><i class="material-icons">format_italic</i></button>
-                <button class="tool-btn" title="Underline" id="underlineBtn" data-format="underline"><i class="material-icons">format_underlined</i></button>
+                <button class="tool-btn" title="Bold" id="boldBtn" data-format="bold"><i
+                        class="material-icons">format_bold</i></button>
+                <button class="tool-btn" title="Italic" id="italicBtn" data-format="italic"><i
+                        class="material-icons">format_italic</i></button>
+                <button class="tool-btn" title="Underline" id="underlineBtn" data-format="underline"><i
+                        class="material-icons">format_underlined</i></button>
             </div>
             <div class="tool-group">
-                <button class="tool-btn" title="Move Up (Ctrl + })" id="moveUpBtn"><i class="material-icons">keyboard_arrow_up</i></button>
-                <button class="tool-btn" title="Move Down (Ctrl + {)" id="moveDownBtn"><i class="material-icons">keyboard_arrow_down</i></button>
-                <button class="tool-btn" title="Duplicate" id="duplicateBtn"><i class="material-icons">content_copy</i></button>
+                <button class="tool-btn" title="Move Up (Ctrl + })" id="moveUpBtn"><i
+                        class="material-icons">keyboard_arrow_up</i></button>
+                <button class="tool-btn" title="Move Down (Ctrl + {)" id="moveDownBtn"><i
+                        class="material-icons">keyboard_arrow_down</i></button>
+                <button class="tool-btn" title="Duplicate" id="duplicateBtn"><i
+                        class="material-icons">content_copy</i></button>
                 <button class="tool-btn" title="Delete" id="deleteBtn"><i class="material-icons">delete</i></button>
             </div>
             <div class="tool-group">
@@ -150,23 +180,26 @@
                     <span id="opacityValue">100%</span>
                 </div>
             </div>
+            
             <div class="tool-group">
                 <button class="tool-btn" title="Undo" id="undoBtn"><i class="material-icons">undo</i></button>
                 <button class="tool-btn" title="Redo" id="redoBtn"><i class="material-icons">redo</i></button>
-                <button class="tool-btn" title="Clear Canvas" id="clearCanvasBtn"><i class="material-icons">delete_sweep</i></button>
+                <button class="tool-btn" title="Clear Canvas" id="clearCanvasBtn"><i
+                        class="material-icons">delete_sweep</i></button>
             </div>
         </div>
-        
+
         <!-- Main content: three columns -->
         <div class="main-content">
             <!-- Left Sidebar -->
             <div class="left-sidebar">
                 <div class="ai-section">
                     <h3>AI Image Generation</h3>
-                    <textarea class="image-prompt-input" id="imagePrompt" placeholder="Describe the image you want to generate..."></textarea>
+                    <textarea class="image-prompt-input" id="imagePrompt"
+                        placeholder="Describe the image you want to generate..."></textarea>
                     <div class="button-group">
                         <button class="generate-btn" id="generateImageBtn">Generate Image</button>
-                        <button class="enhance-btn" id="enhancePromptBtn">Enhance Prompt</button>
+                        <button class="enhance-btn" id="enhancePromptBtn">Enhance Prompt </button>
                     </div>
                 </div>
                 <div class="ai-section">
@@ -189,7 +222,8 @@
             <div class="right-sidebar">
                 <div class="ai-section">
                     <h3>AI Design Assistant</h3>
-                    <textarea id="designDescription" class="design-description" placeholder="Describe your design..."></textarea>
+                    <textarea id="designDescription" class="design-description"
+                        placeholder="Describe your design..."></textarea>
                     <button id="generateDesignBtn" class="generate-btn">Generate Layout</button>
                     <div class="caption-suggestions" style="margin-top: 24px;">
                         <h4>AI CAPTION SUGGESTIONS</h4>
@@ -200,10 +234,11 @@
             </div>
         </div>
     </div>
-    
+
     <input type="file" id="uploadImage" accept="image/*" style="display: none;">
-    
+
     <!-- Load our JavaScript last -->
     <script src="tool.js"></script>
 </body>
+
 </html>

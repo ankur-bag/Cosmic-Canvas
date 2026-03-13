@@ -13,231 +13,229 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,wght@6..144,1..1000&family=Shadows+Into+Light+Two&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
-<body class="min-h-screen font-sans antialiased text-white">
-    <div class="space-background"></div>
-    <div class="stars"></div>
-    <div class="cosmic-dust"></div>
-    <div class="background-grid"></div>
-    <div class="floating-particles" id="particles"></div>
-    <div class="content-wrapper">
-        <!-- Navigation -->
-        <header class="sticky top-0 z-50 w-full border-b border-gray-800 bg-black/80 backdrop-blur supports-[backdrop-filter]:bg-black/60">
-            <div class="container flex h-16 items-center justify-between">
-                <div class="flex items-center space-x-2">
-                    <img src="logo.png" alt="Cosmic Canvas Logo" class="h-20 w-20" />
-                
-                </div>
-                <div class="flex items-center space-x-8">
-                    <nav class="flex items-center space-x-6">
-                        <a href="#features" class="nav-link text-sm font-medium">Features</a>
-                        <a href="#about" class="nav-link text-sm font-medium">About</a>
-                    </nav>
-                    <div class="flex items-center space-x-4">
-                        <a href="login.html" class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-gray-800 bg-black hover:bg-gray-900 text-white h-9 px-4 py-2 glow-effect">
-                            Login
-                        </a>
-                        <a href="signup.html" class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 glow-effect">
-                            Sign Up
-                        </a>
-                    </div>
-                </div>
+<body class="bg-white text-[#1d1d1f] antialiased">
+    <div class="bg-pattern"></div>
+    
+    <!-- Navigation -->
+    <nav class="fixed top-0 left-0 right-0 z-[100] bg-white/70 backdrop-blur-xl border-b border-black/5">
+        <div class="max-w-[1200px] mx-auto px-6 h-20 flex items-center justify-between">
+            <div class="flex items-center gap-3 cursor-pointer" onclick="window.location.href='index.html'">
+                <img src="logo.png" alt="Logo" class="w-8 h-8">
+                <span class="text-xl font-medium tracking-tight">Cosmic Canvas</span>
             </div>
-        </header>
+            <div class="hidden md:flex items-center gap-10">
+                <a href="#features" class="text-sm font-medium hover:text-indigo-600 transition-colors">Features</a>
+                <a href="login.html" class="text-sm font-medium hover:text-indigo-600 transition-colors">Sign In</a>
+                <a href="signup.html" class="px-5 py-2 bg-indigo-600 text-white text-xs font-medium rounded-full hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200">Start Creating</a>
+            </div>
+        </div>
+    </nav>
 
-        <!-- Hero Section -->
-        <section class="container relative flex flex-col items-center justify-center space-y-8 py-24 text-center md:py-32">
-            <div class="absolute inset-0 space-pattern opacity-20"></div>
-            <div class="relative space-y-4" style="margin-bottom: 1rem;"> <!-- Adjusted margin-bottom -->
-                <h1 class="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl lg:text-8xl" style="margin-bottom: 1.5rem;">
-                    <span class="text-gradient">Create Stunning Designs</span>
-                    <br />
-                    <span class="text-white">with Cosmic Canvas</span>
-                </h1>
-                <p id="typing-effect" class="mt-2 text-2xl font-semibold text-gradient" style="font-size:1.75rem; margin-bottom: 2rem;">AI-generated designs. Human-level control.</p> <!-- Increased font size and added margin-bottom -->
-                <p class="mx-auto max-w-[700px] text-lg text-gray-300 md:text-xl" style="margin-top: 1rem;"> <!-- Added margin-top to push it down -->
-                    Transform your ideas into beautiful designs with our AI-powered tools. Generate images, create layouts, and craft perfect captions in seconds.
-                </p>
-            </div>
-            <div class="relative flex flex-col gap-4 min-[400px]:flex-row" style="margin-top: 2rem;"> <!-- Added margin-top to create space -->
-                <a href="signup.html" class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-12 px-8 glow-effect">
-                    Start Creating
-                </a>
-                <a href="#features" class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-gray-800 bg-black hover:bg-gray-900 text-white h-12 px-8 glow-effect">
-                    Learn More
-                </a>
+    <main class="content-wrapper pt-32">
+        <!-- 1️⃣ Hero Section -->
+        <section class="min-h-[80vh] flex flex-col items-center justify-center text-center px-6 py-20 bg-gradient-to-b from-white to-gray-50/30">
+            <h1 class="text-5xl md:text-8xl font-medium tracking-tighter mb-10 leading-[0.85] bg-gradient-to-b from-black via-black to-indigo-600 bg-clip-text text-transparent">
+                Design with AI.<br>Edit with Precision.
+            </h1>
+            <p class="text-xl md:text-2xl text-gray-500 max-w-2xl mb-16 font-medium leading-tight">
+                AI-powered generation with professional layer-based editing.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-6 mb-32">
+                <a href="signup.html" class="px-10 py-4 bg-indigo-600 text-white font-medium rounded-2xl text-lg hover:bg-indigo-700 transition-all shadow-2xl shadow-indigo-100/50 hover:scale-105 transform duration-500">Start Designing</a>
+                <a href="#features" class="px-10 py-4 border border-black/10 text-black font-medium rounded-2xl text-lg hover:bg-black/5 transition-all">Explore Platform</a>
             </div>
             
-            <!-- Scroll indicator -->
-            <a href="#features" class="scroll-indicator">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                    <path d="M7 10l5 5 5-5z"></path>
-                </svg>
-            </a>
-        </section>
-
-        <!-- About Section -->
-        <section id="about" class="container relative space-y-12 py-16 md:py-24">
-            <div class="absolute inset-0 space-pattern opacity-20"></div>
-            <div class="relative mx-auto flex max-w-[58rem] flex-col items-center space-y-4 text-center">
-                <h2 class="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
-                    <span class="text-gradient">About Cosmic Canvas</span>
-                </h2>
-                <p class="max-w-[85%] text-lg text-gray-300">
-                    We're revolutionizing the way people create designs
-                </p>
-            </div>
-            <div class="relative grid gap-6 md:grid-cols-2">
-                <div class="feature-card rounded-lg p-8">
-                    <h3 class="text-xl font-semibold mb-4 text-white">Our Mission</h3>
-                    <p class="text-gray-300">
-                        To empower creators with AI-powered tools that make design accessible to everyone, regardless of their experience level. We believe in democratizing design and making it available to all.
-                    </p>
-                </div>
-                <div class="feature-card rounded-lg p-8">
-                    <h3 class="text-xl font-semibold mb-4 text-white">Our Vision</h3>
-                    <p class="text-gray-300">
-                        To become the go-to platform for AI-assisted design, helping millions of people bring their creative visions to life. We're building the future of design, one creation at a time.
-                    </p>
-                </div>
+            <!-- Mockup -->
+            <div class="w-full max-w-[1400px] rounded-[48px] overflow-hidden border border-black/5 shadow-[0_80px_160px_rgba(0,0,0,0.1)] relative group bg-white">
+                <img src="https://i.postimg.cc/fyDfmH0D/design-tool.png" alt="Cosmic Canvas Interface" class="w-full h-auto group-hover:scale-[1.01] transition-transform duration-1000">
+                <div class="absolute inset-0 ring-1 ring-inset ring-black/5 rounded-[48px]"></div>
             </div>
         </section>
 
-        <!-- Design Tool Section -->
-        <section id="design-tool" class="container relative space-y-12 py-16 md:py-24">
-            <div class="absolute inset-0 space-pattern opacity-20"></div>
-            <div class="relative mx-auto flex max-w-[58rem] flex-col items-center space-y-4 text-center">
-                <h2 class="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
-                    <span class="text-gradient">Design Tool</span>
-                </h2>
-                <p class="max-w-[85%] text-lg text-gray-300">
-                    Experience our powerful design tool with AI capabilities
-                </p>
+        <!-- 2️⃣ What is Cosmic Canvas -->
+        <section class="py-40 px-6 text-center max-w-4xl mx-auto">
+            <h2 class="text-4xl md:text-7xl mb-8 font-medium tracking-tight">AI-Generated Designs.<br><span class="text-indigo-600">Human-Level Control.</span></h2>
+            <div class="space-y-6 text-xl text-gray-600 leading-relaxed font-light">
+                <p>Cosmic Canvas is an AI-powered design tool that bridges the gap between AI creativity and human control.</p>
+                <p>Most AI image generators produce stunning visuals — but they are static and uneditable. If you want to change a single element, you have to regenerate the entire image.</p>
+                <p class="font-medium text-black">Cosmic Canvas solves this.</p>
+                <p>It generates designs using AI and then places them inside an interactive, layer-based canvas editor, allowing users to edit, move, resize, and customize every element individually.</p>
             </div>
-            <div class="relative flex justify-center items-center">
-                <div class="design-tool-image-container">
-                    <div class="design-tool-wrapper">
-                        <img src="design tool.jpg" alt="Design Tool Interface" class="design-tool-image" />
-                        <div class="design-tool-overlay"></div>
-                        <div class="design-tool-glow"></div>
+        </section>
+
+        <!-- 3️⃣ The Problem & 4️⃣ Our Solution -->
+        <section class="py-40 px-6 bg-indigo-50/50 rounded-[48px] my-20">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-20">
+                <div>
+                    <h2 class="text-3xl mb-8 font-medium">Why Traditional Tools Fall Short</h2>
+                    <ul class="space-y-6 text-gray-600">
+                        <li class="flex gap-4"><span class="text-indigo-600 font-medium">Startups</span> often cannot afford dedicated graphic designers.</li>
+                        <li class="flex gap-4"><span class="text-indigo-600 font-medium">Beginners</span> find tools like Photoshop too complicated to learn.</li>
+                        <li class="flex gap-4"><span class="text-indigo-600 font-medium">Template tools</span> like Canva limit creativity and flexibility.</li>
+                        <li class="flex gap-4"><span class="text-indigo-600 font-medium font-medium">AI generators</span> produce beautiful images but give users zero control.</li>
+                    </ul>
+                </div>
+                <div>
+                    <h2 class="text-3xl mb-8 font-medium">The Solution: Our Workflow</h2>
+                    <p class="text-gray-600 mb-8 leading-relaxed">Instead of choosing between AI automation and manual design control, Cosmic Canvas gives you both.</p>
+                    <div class="p-8 bg-white rounded-3xl border border-indigo-100 shadow-xl shadow-indigo-100/50">
+                        <p class="text-indigo-600 font-medium mb-4">The Logic</p>
+                        <p class="text-gray-800">Generate visual elements, layouts, and captions with a prompt. Customize every layer instantly.</p>
+                    </div>
+                </div>
+            </div>
+          <!-- 5️⃣ Key Features -->
+        <section id="features" class="py-40 px-6 text-center max-w-7xl mx-auto">
+            <h2 class="text-6xl md:text-7xl mb-12 font-medium tracking-tight bg-gradient-to-b from-black to-indigo-600 bg-clip-text text-transparent">Powerful Features</h2>
+            <p class="text-xl text-gray-500 mb-24 max-w-2xl mx-auto">Everything you need to create professional designs without the learning curve.</p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-magic"></i></div>
+                    <h3 class="feature-h3">AI Image Generation</h3>
+                    <p class="feature-p">Generate unique visual elements such as backgrounds and textures using simple text prompts.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-th-large"></i></div>
+                    <h3 class="feature-h3">Smart Layouts</h3>
+                    <p class="feature-p">Receive intelligent layout structures that automatically organize your content into compositions.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-pen-nib"></i></div>
+                    <h3 class="feature-h3">AI Caption Assistant</h3>
+                    <p class="feature-p">Generate engaging captions and text content tailored to your design's purpose.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-tools"></i></div>
+                    <h3 class="feature-h3">Design Toolkit</h3>
+                    <p class="feature-p">Move, resize, rotate, and recolor any element on the canvas like a pro.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-expand"></i></div>
+                    <h3 class="feature-h3">Flexible Canvas</h3>
+                    <p class="feature-p">Pan and zoom with precise control using pixels, centimeters, or inches.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-download"></i></div>
+                    <h3 class="feature-h3">Export & Share</h3>
+                    <p class="feature-p">Download in multiple formats for social media, marketing, or presentations.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6️⃣ How It Works -->
+        <section class="py-40 px-6">
+            <div class="max-w-4xl mx-auto">
+                <h2 class="text-6xl md:text-7xl text-center mb-32 font-medium tracking-tight">Idea to Design<br>in seconds.</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-16">
+                    <div class="space-y-16">
+                        <div class="flex gap-10">
+                            <div class="w-14 h-14 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 font-medium text-xl shadow-sm border border-indigo-100">1</div>
+                            <div>
+                                <h4 class="text-2xl mb-3 font-medium">Choose Canvas Size</h4>
+                                <p class="text-gray-500 leading-relaxed text-lg">Select formats like Instagram post, poster, or custom dimensions.</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-10">
+                            <div class="w-14 h-14 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 font-medium text-xl shadow-sm border border-indigo-100">2</div>
+                            <div>
+                                <h4 class="text-2xl mb-3 font-medium">Describe Your Idea</h4>
+                                <p class="text-gray-500 leading-relaxed text-lg">Enter a natural language prompt describing the visual you want.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="space-y-16">
+                        <div class="flex gap-10">
+                            <div class="w-14 h-14 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 font-medium text-xl shadow-sm border border-indigo-100">3</div>
+                            <div>
+                                <h4 class="text-2xl mb-3 font-medium">AI Generates</h4>
+                                <p class="text-gray-500 leading-relaxed text-lg">Our models generate design components tailored to your prompt.</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-10">
+                            <div class="w-14 h-14 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 font-medium text-xl shadow-sm border border-indigo-100">4</div>
+                            <div>
+                                <h4 class="text-2xl mb-3 font-medium">Edit Everything</h4>
+                                <p class="text-gray-500 leading-relaxed text-lg">Customise every element in our layer-based editor.</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Features Section -->
-        <section id="features" class="container relative space-y-12 py-16 md:py-24">
-            <div class="absolute inset-0 space-pattern opacity-20"></div>
-            <div class="relative mx-auto flex max-w-[58rem] flex-col items-center space-y-4 text-center">
-                <h2 class="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
-                    <span class="text-gradient">Powerful Features</span>
-                </h2>
-                <p class="max-w-[85%] text-lg text-gray-300">
-                    Everything you need to create professional designs
-                </p>
-            </div>
-            <div class="relative grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                <div class="feature-card rounded-lg p-6">
-                    <div class="flex items-center justify-between">
-                        <h3 class="text-xl font-semibold text-white">AI Image Generation</h3>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6 text-primary">
-                            <circle cx="17" cy="7" r="4"/>
-                            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-                        </svg>
-                    </div>
-                    <p class="mt-4 text-gray-300">Generate unique images from text descriptions with our advanced AI technology.</p>
-                </div>
-                <div class="feature-card rounded-lg p-6">
-                    <div class="flex items-center justify-between">
-                        <h3 class="text-xl font-semibold text-white">Smart Layouts</h3>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6 text-primary">
-                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                            <line x1="3" y1="9" x2="21" y2="9"/>
-                            <line x1="9" y1="21" x2="9" y2="9"/>
-                        </svg>
-                    </div>
-                    <p class="mt-4 text-gray-300">Get intelligent layout suggestions that adapt to your content and style.</p>
-                </div>
-                <div class="feature-card rounded-lg p-6">
-                    <div class="flex items-center justify-between">
-                        <h3 class="text-xl font-semibold text-white">Caption Suggestions</h3>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6 text-primary">
-                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                        </svg>
-                    </div>
-                    <p class="mt-4 text-gray-300">Generate engaging captions that perfectly match your design and message.</p>
-                </div>
+        <!-- 8️⃣ Who It's For (New Section Implemented) -->
+        <section class="py-40 px-6 text-center max-w-5xl mx-auto border-t border-black/5">
+            <h2 class="text-5xl font-medium mb-16">Built for Creators & Startups</h2>
+            <div class="flex flex-wrap justify-center gap-4 text-lg">
+                <span class="px-6 py-2 bg-gray-100 rounded-full text-gray-600">Startup Founders</span>
+                <span class="px-6 py-2 bg-gray-100 rounded-full text-gray-600">Content Creators</span>
+                <span class="px-6 py-2 bg-gray-100 rounded-full text-gray-600">Design Beginners</span>
+                <span class="px-6 py-2 bg-gray-100 rounded-full text-gray-600">Marketers</span>
             </div>
         </section>
 
-        <!-- Footer -->
-        <footer class="border-t border-gray-800">
-            <div class="container flex flex-col items-center justify-between gap-4 py-10 md:h-24 md:flex-row md:py-0">
-                <div class="flex flex-col items-center gap-4 px-8 md:flex-row md:gap-2 md:px-0">
-                    <img src="logo.png" alt="Cosmic Canvas Logo" class="h-6 w-6" />
-                    <p class="text-center text-sm leading-loose text-gray-300 md:text-left">
-                        Built by 
-                        <a href="#" class="font-medium text-primary hover:underline">
-                            [ FearlessCoders ]
-                        </a>
-                        . All rights reserved.
-                    </p>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <a href="#" class="text-sm font-medium text-gray-300 hover:text-primary transition-colors">Terms</a>
-                    <a href="#" class="text-sm font-medium text-gray-300 hover:text-primary transition-colors">Privacy</a>
-                    <a href="#" class="text-sm font-medium text-gray-300 hover:text-primary transition-colors">Contact</a>
-                </div>
+        <!-- 8.5️⃣ Tech Section -->
+        <section class="py-40 px-6 ">
+            <div class="text-center mb-16 text-gray-600">
+                <h2 class="text-4xl font-medium text-gray-600">Powered by Intelligence</h2>
             </div>
-        </footer>
-    </div>
+            <div class="flex flex-wrap justify-center gap-16 opacity-30 grayscale contrast-125 text-gray-600">
+                <div class="flex items-center gap-3"><i class="fab fa-html5 text-3xl"></i><span class="font-medium text-lg text-gray-600">Next-Gen Web</span></div>
+                <div class="flex items-center gap-3"><i class="fab fa-python text-3xl"></i><span class="font-medium text-lg text-gray-600">Neural Engine</span></div>
+                <div class="flex items-center gap-3"><i class="fas fa-brain text-3xl"></i><span class="font-medium text-lg text-gray-600">HuggingFace</span></div>
+            </div>
+        </section>
+
+        <!-- 9️⃣ Final Call To Action -->
+        <section class="py-60 px-6 text-center">
+            <h2 class="text-7xl md:text-8xl mb-12 font-medium tracking-tight">Design smarter.<br>Move faster.</h2>
+            <p class="text-2xl text-gray-500 mb-16 max-w-2xl mx-auto">Turn your ideas into beautiful designs today.</p>
+            <a href="signup.html" class="px-16 py-6 bg-black text-white font-medium rounded-[32px] text-2xl hover:bg-gray-900 transition-all shadow-2xl hover:scale-105 transform active:scale-95 duration-500">Get Started Free</a>
+        </section>
+    </main>
+
+    <footer class="py-32 border-t border-black/5">
+        <div class="max-w-[1200px] mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-10">
+            <div class="flex items-center gap-3">
+                <img src="logo.png" alt="Logo" class="w-8 h-8 opacity-50">
+                <span class="text-gray-400 font-medium tracking-tight">Cosmic Canvas</span>
+            </div>
+            <div class="flex gap-12 text-gray-400 text-sm font-medium">
+                <a href="#" class="hover:text-black transition-colors">Privacy</a>
+                <a href="#" class="hover:text-black transition-colors">Terms</a>
+                <a href="#" class="hover:text-black transition-colors">Twitter</a>
+                <a href="#" class="hover:text-black transition-colors">Support</a>
+            </div>
+            <div class="text-gray-400 text-sm">
+                © 2026 Cosmic Canvas. All rights reserved.
+            </div>
+        </div>
+    </footer>
 
     <script>
-        // Create floating particles
-        function createParticles() {
-            const particlesContainer = document.getElementById('particles');
-            const particleCount = 20;
-
-            for (let i = 0; i < particleCount; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'particle';
-                
-                // Random size between 2px and 6px
-                const size = Math.random() * 4 + 2;
-                particle.style.width = `${size}px`;
-                particle.style.height = `${size}px`;
-                
-                // Random position
-                particle.style.left = `${Math.random() * 100}%`;
-                particle.style.top = `${Math.random() * 100}%`;
-                
-                // Random animation duration
-                particle.style.animationDuration = `${Math.random() * 10 + 10}s`;
-                
-                // Random delay
-                particle.style.animationDelay = `${Math.random() * 5}s`;
-                
-                particlesContainer.appendChild(particle);
-            }
-        }
-
-        // Initialize particles when the page loads
-        window.addEventListener('load', createParticles);
-
-        // Add smooth scrolling for navigation links
+        // Smooth scroll for anchors
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
                 e.preventDefault();
-                
-                document.querySelector(this.getAttribute('href')).scrollIntoView({
-                    behavior: 'smooth'
-                });
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                }
             });
         });
     </script>
-
-    <!-- Firebase CDN -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
+</body>
+</html>
+tore.js"></script>
   </body>
 </html>
