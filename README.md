@@ -1,6 +1,6 @@
-# 🪐 Cosmic Canvas – AI-generated designs. Human-level control.
+#  Cosmic Canvas – AI-generated designs. Human-level control.
 
-## 💡 Problem Solved
+##  Problem Solved
 
 *Creating professional-looking banners, social media posts, and advertisements can be a significant hurdle for many:*
 
@@ -12,7 +12,7 @@
 
 -----
 
-## 🚀 The Solution: Cosmic Canvas
+##  The Solution: Cosmic Canvas
 
 *Cosmic Canvas is an innovative, AI-powered design tool that combines the raw creativity of AI generation with precise, layer-based human control. It empowers anyone to:*
 
@@ -25,7 +25,7 @@ We're democratizing design by making it accessible, editable, and intuitive for 
 
 -----
 
-## ✨ Features
+##  Features
 
   * **AI Image Generation:** Generate unique, editable visual elements (backgrounds, objects, textures) directly from text descriptions using advanced AI models.
   * **Smart Layout Generator:** Get instant, intelligently structured layout suggestions that adapt to your content and design purpose, helping you create cohesive visuals effortlessly.
@@ -36,7 +36,7 @@ We're democratizing design by making it accessible, editable, and intuitive for 
 
 -----
 
-## ⚙️ How It Works
+##  How It Works
 
 *Users start by selecting a canvas size for their desired post or banner. The creative process then unfolds:*
 
@@ -48,30 +48,30 @@ We're democratizing design by making it accessible, editable, and intuitive for 
 
 -----
 
-## 🧩 Challenges We Faced
+##  Challenges We Faced
 Building Cosmic Canvas was a rewarding journey, but it came with its fair share of technical and creative hurdles—especially in merging AI-powered generation with an interactive design experience.
 
-🛠️ Maintaining Tool-Wide Functionality
+ Maintaining Tool-Wide Functionality
 Combining features like canvas editing, AI generation, custom sizing, and dynamic downloads into one cohesive tool was complex. Ensuring that these modules worked seamlessly together without breaking other parts of the interface required rigorous integration testing and a modular approach.
 
-📏 Dynamic Canvas Resizing
+ Dynamic Canvas Resizing
 Supporting various canvas sizes—like Instagram posts, posters, and banners—meant implementing a flexible resizing system. We had to ensure accurate unit handling (px, cm, in) while maintaining visual consistency and responsiveness across devices.
 
-🧾 Making Text Feel Like a Layout
+ Making Text Feel Like a Layout
 A major challenge was positioning AI-generated text so it looked like a polished layout, not just random text boxes on a canvas. We developed logic to structure headings, subheadings, and captions in a visually balanced and readable format.
 
-🖼️ Generating Canvas-Fitting Images
+ Generating Canvas-Fitting Images
 Our AI image outputs initially didn’t match the canvas dimensions, leading to poor fit or pixelation. We resolved this by feeding the exact canvas size into the prompt and applying proper scaling techniques, ensuring visuals aligned perfectly with user-defined dimensions.
 
-🎯 Crafting Prompts for Contextual Backgrounds
+ Crafting Prompts for Contextual Backgrounds
 Instead of full-subject images, we needed backgrounds that complemented the content without overwhelming it. This required careful prompt engineering to guide AI toward generating ambient, design-friendly visuals.
 
-🧪 API Rate Limits & Free Tier Limitations
+ API Rate Limits & Free Tier Limitations
 Using free-tier APIs (like Hugging Face and OpenRouter) helped us prototype quickly, but came with downsides—strict rate limits, slower responses, and reduced quality under heavy load. Differentiating API issues from app bugs also made debugging harder. We addressed this with retry logic, loading indicators, and user alerts to manage expectations during peak use.
 
 -----
 
-## 🌐 Tech Stack
+##  Tech Stack
 
   * **Frontend:** HTML, CSS, JavaScript,Tailwind CSS
   * **Canvas Engine:** Fabric.js
@@ -80,18 +80,10 @@ Using free-tier APIs (like Hugging Face and OpenRouter) helped us prototype quic
 
 -----
 
-## 🤝 Team
+##  Team
 
 This project was a collaborative effort.
 
-  * **Co-creators:** *Ankur Bag , Samrit Mukherjee*
-  * **Contributors:** *Dhritiman Siva, Monalisa Roy*
-
+  * **Co-creators:** *Ankur Bag , Samrit Mukherjee
 -----
 
- ***📜 License*** 
-
-*This project is licensed under the MIT License – see the LICENSE file for details.*
-// MIT License
-// Copyright (c) 2025 Ankur Bag , Samrit Mukherjee
-// See LICENSE file for full license information.
